@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface Vehicle {
@@ -18,9 +18,7 @@ interface FormData {
   notasAdicionales: string;
 }
 
-export default function AddRoute() {
-  const searchParams = useSearchParams();
-  const vehicleFromUrl = searchParams.get('vehicle');
+function AddRouteForm({ vehicleFromUrl }: { vehicleFromUrl: string | null }) {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [formData, setFormData] = useState<FormData>({
     vehicleAlias: vehicleFromUrl || "",
@@ -53,7 +51,7 @@ export default function AddRoute() {
 
       const data = await response.json();
       setVehicles(data.data || []);
-      
+
       // Solo seleccionar automáticamente si no hay vehículo pre-seleccionado desde URL
       if (!vehicleFromUrl) {
         const activeVehicle = data.data?.find((v: Vehicle) => v.isActive);
@@ -100,7 +98,7 @@ export default function AddRoute() {
       }
 
       setSuccess(true);
-      
+
       setTimeout(() => {
         router.push("/routes-history");
       }, 1000);
@@ -237,5 +235,24 @@ export default function AddRoute() {
         </form>
       </main>
     </div>
+  );
+}
+
+function AddRouteContent() {
+  const searchParams = useSearchParams();
+  const vehicleFromUrl = searchParams.get('vehicle');
+
+  return <AddRouteForm vehicleFromUrl={vehicleFromUrl} />;
+}
+
+export default function AddRoute() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-gray-600">Cargando...</div>
+      </div>
+    }>
+      <AddRouteContent />
+    </Suspense>
   );
 }
