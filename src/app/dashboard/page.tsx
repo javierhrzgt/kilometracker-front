@@ -1,22 +1,23 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, MouseEvent } from "react";
+import { Vehicle } from "@/Types";
 import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
-  const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-  const [showInactive, setShowInactive] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(false);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [showInactive, setShowInactive] = useState<boolean>(false);
+  const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
     fetchVehicles();
   }, []);
 
-  const fetchVehicles = async () => {
+  const fetchVehicles = async (): Promise<void> => {
     try {
       const response = await fetch("/api/vehicles", {
         credentials: "include",
@@ -34,7 +35,7 @@ export default function Dashboard() {
 
       setVehicles(data.data || []);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -47,7 +48,7 @@ export default function Dashboard() {
     router.push("/");
   };
 
-  const handleDelete = async (alias) => {
+  const handleDelete = async (alias:string): Promise<void> => {
     try {
       const response = await fetch(`/api/vehicles/${alias}`, {
         method: "DELETE",
@@ -61,7 +62,7 @@ export default function Dashboard() {
       setDeleteConfirm(null);
       fetchVehicles();
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
@@ -244,13 +245,15 @@ export default function Dashboard() {
             {filteredVehicles.length}{" "}
             {filteredVehicles.length === 1 ? "vehículo" : "vehículos"}
             {!showInactive &&
-              vehicles.filter((v) => !v.isActive).length > 0 && (
+              vehicles.filter((v:Vehicle) => !v.isActive).length > 0 && (
                 <span className="text-gray-400">
                   {" "}
-                  ({vehicles.filter((v) => !v.isActive).length} inactivo
-                  {vehicles.filter((v) => !v.isActive).length !== 1 ? "s" : ""}{" "}
+                  ({vehicles.filter((v:Vehicle) => !v.isActive).length} inactivo
+                  {vehicles.filter((v:Vehicle) => !v.isActive).length !== 1
+                    ? "s"
+                    : ""}{" "}
                   oculto
-                  {vehicles.filter((v) => !v.isActive).length !== 1 ? "s" : ""})
+                  {vehicles.filter((v:Vehicle) => !v.isActive).length !== 1 ? "s" : ""})
                 </span>
               )}
           </p>
@@ -334,7 +337,7 @@ export default function Dashboard() {
                 {/* Actions */}
                 <div className="grid grid-cols-2 gap-2 pt-4 border-t border-gray-100">
                   <button
-                    onClick={(e) => {
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation();
                       router.push(`/vehicle-stats/${vehicle.alias}`);
                     }}
@@ -343,7 +346,7 @@ export default function Dashboard() {
                     Estadísticas
                   </button>
                   <button
-                    onClick={(e) => {
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation();
                       router.push(`/fuel-analysis/${vehicle.alias}`);
                     }}
@@ -352,7 +355,7 @@ export default function Dashboard() {
                     Combustible
                   </button>
                   <button
-                    onClick={(e) => {
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation();
                       router.push(`/edit-vehicle/${vehicle.alias}`);
                     }}
@@ -361,7 +364,7 @@ export default function Dashboard() {
                     Editar
                   </button>
                   <button
-                    onClick={(e) => {
+                    onClick={(e: MouseEvent<HTMLButtonElement>) => {
                       e.stopPropagation();
                       setDeleteConfirm(vehicle.alias);
                     }}
@@ -379,7 +382,7 @@ export default function Dashboard() {
                     </p>
                     <div className="flex gap-2">
                       <button
-                        onClick={(e) => {
+                        onClick={(e: MouseEvent<HTMLButtonElement>) => {
                           e.stopPropagation();
                           handleDelete(vehicle.alias);
                         }}
@@ -388,7 +391,7 @@ export default function Dashboard() {
                         Confirmar
                       </button>
                       <button
-                        onClick={(e) => {
+                        onClick={(e: MouseEvent<HTMLButtonElement>) => {
                           e.stopPropagation();
                           setDeleteConfirm(null);
                         }}

@@ -2,12 +2,13 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import type { Vehicle, VehicleStats } from "@/Types";
 
-export default function VehicleStats() {
-  const params = useParams();
-  const alias = params.alias;
-  const [stats, setStats] = useState(null);
-  const [vehicle, setVehicle] = useState(null);
+export default function VehicleStatsPage() {
+  const params = useParams<{ alias: string }>();
+  const alias: string = params.alias;
+  const [stats, setStats] = useState<VehicleStats | null>(null);
+  const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -33,7 +34,7 @@ export default function VehicleStats() {
       setStats(statsData.statistics);
       setVehicle(statsData.vehicle);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -125,7 +126,7 @@ export default function VehicleStats() {
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
                 <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Promedio</p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
-                  {parseFloat(stats.promedioDistanciaPorRuta || 0).toFixed(1)}
+                  {Number(stats.promedioDistanciaPorRuta || 0).toFixed(1)}
                   <span className="text-sm sm:text-xl text-gray-500 ml-1">km</span>
                 </p>
               </div>
@@ -204,7 +205,7 @@ export default function VehicleStats() {
                     con un total de <span className="font-medium text-gray-900">{stats.totalDistancia} km</span> recorridos.
                   </p>
                   <p>
-                    Promedio de <span className="font-medium text-gray-900">{parseFloat(stats.promedioDistanciaPorRuta).toFixed(1)} km</span> por ruta.
+                    Promedio de <span className="font-medium text-gray-900">{Number(stats.promedioDistanciaPorRuta).toFixed(1)} km</span> por ruta.
                     {stats.totalRefuels > 0 && (
                       <> Has realizado <span className="font-medium text-gray-900">{stats.totalRefuels}</span> recargas de combustible.</>
                     )}

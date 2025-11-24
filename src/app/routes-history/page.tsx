@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
+import type { Route, Vehicle } from "@/Types";
 
 export default function RoutesHistory() {
-  const [routes, setRoutes] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
+  const [routes, setRoutes] = useState<Route[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filters, setFilters] = useState({
     vehicleAlias: "",
     startDate: "",
@@ -13,12 +14,12 @@ export default function RoutesHistory() {
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [editingRoute, setEditingRoute] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [editingRoute, setEditingRoute] = useState<Route | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const router = useRouter();
 
   // Función helper para formatear fechas correctamente
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     try {
       if (!dateString) return "Sin fecha";
       
@@ -41,7 +42,7 @@ export default function RoutesHistory() {
     }
   };
 
-  const getDateValue = (dateString) => {
+  const getDateValue = (dateString: string) => {
     try {
       const dateOnly = dateString.split('T')[0];
       return dateOnly;
@@ -95,13 +96,13 @@ export default function RoutesHistory() {
       const data = await response.json();
       setRoutes(data.data || []);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (e) => {
+  const handleFilterChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFilters(prev => ({ ...prev, [name]: value }));
   };
@@ -115,7 +116,7 @@ export default function RoutesHistory() {
     setTimeout(() => fetchRoutes(), 0);
   };
 
-  const handleEdit = (route) => {
+  const handleEdit = (route: Route) => {
     setEditingRoute({
       ...route,
       fecha: getDateValue(route.fecha),
@@ -127,6 +128,8 @@ export default function RoutesHistory() {
   };
 
   const handleSaveEdit = async () => {
+    if (!editingRoute) return;
+
     try {
       const response = await fetch(`/api/routes/${editingRoute._id}`, {
         method: "PUT",
@@ -146,11 +149,11 @@ export default function RoutesHistory() {
       setEditingRoute(null);
       fetchRoutes();
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       const response = await fetch(`/api/routes/${id}`, {
         method: "DELETE",
@@ -164,7 +167,7 @@ export default function RoutesHistory() {
       setDeleteConfirm(null);
       fetchRoutes();
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
@@ -315,7 +318,7 @@ export default function RoutesHistory() {
                           type="number"
                           value={editingRoute.distanciaRecorrida}
                           onChange={(e) =>
-                            setEditingRoute({ ...editingRoute, distanciaRecorrida: e.target.value })
+                            setEditingRoute({ ...editingRoute, distanciaRecorrida: e.target.value as any })
                           }
                           className="w-full border border-gray-300 rounded p-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
                         />

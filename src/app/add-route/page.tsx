@@ -1,13 +1,28 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+
+interface Vehicle {
+  _id: string;
+  alias: string;
+  marca: string;
+  plates: string;
+  isActive: boolean;
+}
+
+interface FormData {
+  vehicleAlias: string;
+  distanciaRecorrida: string;
+  fecha: string;
+  notasAdicionales: string;
+}
 
 export default function AddRoute() {
   const searchParams = useSearchParams();
   const vehicleFromUrl = searchParams.get('vehicle');
-  const [vehicles, setVehicles] = useState([]);
-  const [formData, setFormData] = useState({
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [formData, setFormData] = useState<FormData>({
     vehicleAlias: vehicleFromUrl || "",
     distanciaRecorrida: "",
     fecha: new Date().toISOString().split("T")[0],
@@ -41,17 +56,17 @@ export default function AddRoute() {
       
       // Solo seleccionar automáticamente si no hay vehículo pre-seleccionado desde URL
       if (!vehicleFromUrl) {
-        const activeVehicle = data.data?.find(v => v.isActive);
+        const activeVehicle = data.data?.find((v: Vehicle) => v.isActive);
         if (activeVehicle) {
           setFormData(prev => ({ ...prev, vehicleAlias: activeVehicle.alias }));
         }
       }
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -59,7 +74,7 @@ export default function AddRoute() {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
@@ -86,13 +101,12 @@ export default function AddRoute() {
 
       setSuccess(true);
       
-      // Redirigir al historial después de 1 segundo
       setTimeout(() => {
         router.push("/routes-history");
       }, 1000);
 
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -201,7 +215,7 @@ export default function AddRoute() {
             <textarea
               id="notasAdicionales"
               name="notasAdicionales"
-              rows="4"
+              rows={4}
               placeholder="Trabajo, viaje familiar, etc."
               value={formData.notasAdicionales}
               onChange={handleChange}

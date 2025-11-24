@@ -1,16 +1,17 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
+import type { Refuel, Vehicle } from "@/Types";
 
 export default function RefuelsHistory() {
-  const [refuels, setRefuels] = useState([]);
-  const [vehicles, setVehicles] = useState([]);
+  const [refuels, setRefuels] = useState<Refuel[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filterVehicle, setFilterVehicle] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [editingRefuel, setEditingRefuel] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
+  const [editingRefuel, setEditingRefuel] = useState<Refuel | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const router = useRouter();
 
   const tiposCombustible = ["Regular", "Super", "V-Power", "Diesel"];
@@ -58,13 +59,13 @@ export default function RefuelsHistory() {
       const data = await response.json();
       setRefuels(data.data || []);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleFilterChange = (e) => {
+  const handleFilterChange = (e: ChangeEvent<HTMLSelectElement>) => {
     setFilterVehicle(e.target.value);
   };
 
@@ -77,7 +78,7 @@ export default function RefuelsHistory() {
     setTimeout(() => fetchRefuels(), 0);
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = (dateString: string) => {
     try {
       if (!dateString) return "Sin fecha";
       const dateOnly = dateString.split('T')[0];
@@ -94,7 +95,7 @@ export default function RefuelsHistory() {
     }
   };
 
-  const getDateValue = (dateString) => {
+  const getDateValue = (dateString: string) => {
     try {
       const dateOnly = dateString.split('T')[0];
       return dateOnly;
@@ -103,7 +104,7 @@ export default function RefuelsHistory() {
     }
   };
 
-  const handleEdit = (refuel) => {
+  const handleEdit = (refuel: Refuel) => {
     setEditingRefuel({
       ...refuel,
       fecha: getDateValue(refuel.fecha),
@@ -115,6 +116,8 @@ export default function RefuelsHistory() {
   };
 
   const handleSaveEdit = async () => {
+    if (!editingRefuel) return;
+
     try {
       const response = await fetch(`/api/refuels/${editingRefuel._id}`, {
         method: "PUT",
@@ -136,11 +139,11 @@ export default function RefuelsHistory() {
       setEditingRefuel(null);
       fetchRefuels();
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
-  const handleDelete = async (id) => {
+  const handleDelete = async (id: string) => {
     try {
       const response = await fetch(`/api/refuels/${id}`, {
         method: "DELETE",
@@ -154,12 +157,12 @@ export default function RefuelsHistory() {
       setDeleteConfirm(null);
       fetchRefuels();
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
-  const totalGastado = refuels.reduce((sum, refuel) => sum + parseFloat(refuel.cantidadGastada || 0), 0);
-  const totalGalones = refuels.reduce((sum, refuel) => sum + parseFloat(refuel.galones || 0), 0);
+  const totalGastado = refuels.reduce((sum, refuel) => sum + Number(refuel.cantidadGastada || 0), 0);
+  const totalGalones = refuels.reduce((sum, refuel) => sum + Number(refuel.galones || 0), 0);
 
   return (
     <div className="min-h-screen bg-white">
@@ -303,7 +306,7 @@ export default function RefuelsHistory() {
                           type="number"
                           value={editingRefuel.cantidadGastada}
                           onChange={(e) =>
-                            setEditingRefuel({ ...editingRefuel, cantidadGastada: e.target.value })
+                            setEditingRefuel({ ...editingRefuel, cantidadGastada: e.target.value as any })
                           }
                           className="w-full border border-gray-300 rounded p-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
                         />
@@ -314,7 +317,7 @@ export default function RefuelsHistory() {
                           type="number"
                           value={editingRefuel.galones || ""}
                           onChange={(e) =>
-                            setEditingRefuel({ ...editingRefuel, galones: e.target.value })
+                            setEditingRefuel({ ...editingRefuel, galones: e.target.value as any })
                           }
                           className="w-full border border-gray-300 rounded p-2 text-sm text-gray-900 focus:border-gray-900 focus:outline-none"
                         />
@@ -372,16 +375,16 @@ export default function RefuelsHistory() {
                       </div>
                       <div>
                         <span className="text-gray-500">Monto:</span>
-                        <span className="ml-2 font-medium text-gray-900">Q {parseFloat(refuel.cantidadGastada).toFixed(2)}</span>
+                        <span className="ml-2 font-medium text-gray-900">Q {Number(refuel.cantidadGastada).toFixed(2)}</span>
                       </div>
                       <div>
                         <span className="text-gray-500">Galones:</span>
-                        <span className="ml-2 font-medium text-gray-900">{refuel.galones ? parseFloat(refuel.galones).toFixed(2) : "N/A"}</span>
+                        <span className="ml-2 font-medium text-gray-900">{refuel.galones ? Number(refuel.galones).toFixed(2) : "N/A"}</span>
                       </div>
                       <div>
                         <span className="text-gray-500">Precio/gal:</span>
                         <span className="ml-2 font-medium text-gray-900">
-                          {refuel.precioPorGalon ? `Q ${parseFloat(refuel.precioPorGalon).toFixed(2)}` : "N/A"}
+                          {refuel.precioPorGalon ? `Q ${Number(refuel.precioPorGalon).toFixed(2)}` : "N/A"}
                         </span>
                       </div>
                     </div>

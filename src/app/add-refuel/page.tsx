@@ -1,19 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
 interface Vehicle {
+  _id: string;
   alias: string;
+  marca: string;
+  plates: string;
   isActive: boolean;
-  // ... otros campos
+}
+
+interface FormData {
+  vehicleAlias: string;
+  tipoCombustible: string;
+  cantidadGastada: string;
+  galones: string;
+  fecha: string;
+  notasAdicionales: string;
 }
 
 export default function AddRefuel() {
   const searchParams = useSearchParams();
   const vehicleFromUrl = searchParams.get('vehicle');
-  const [vehicles, setVehicles] = useState([]);
-  const [formData, setFormData] = useState({
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [formData, setFormData] = useState<FormData>({
     vehicleAlias: vehicleFromUrl || "",
     tipoCombustible: "Regular",
     cantidadGastada: "",
@@ -57,11 +68,11 @@ export default function AddRefuel() {
         }
       }
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -69,7 +80,7 @@ export default function AddRefuel() {
     }));
   };
 
-  const calculatePrecioGalon = () => {
+  const calculatePrecioGalon = (): string => {
     const monto = parseFloat(formData.cantidadGastada) || 0;
     const galones = parseFloat(formData.galones) || 0;
     if (galones > 0) {
@@ -78,7 +89,7 @@ export default function AddRefuel() {
     return "0.00";
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
@@ -111,7 +122,7 @@ export default function AddRefuel() {
       }, 1000);
 
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -266,7 +277,7 @@ export default function AddRefuel() {
             <textarea
               id="notasAdicionales"
               name="notasAdicionales"
-              rows="3"
+              rows={3}
               placeholder="Gasolinera, odómetro, etc."
               value={formData.notasAdicionales}
               onChange={handleChange}

@@ -1,18 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { User, ProfileFormData } from "@/Types";
 
 export default function Profile() {
-  const [user, setUser] = useState(null);
-  const [formData, setFormData] = useState({
+  const [user, setUser] = useState<User | null>(null);
+  const [formData, setFormData] = useState<ProfileFormData>({
     username: "",
     email: "",
   });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<boolean>(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -42,18 +43,18 @@ export default function Profile() {
         email: userData.email,
       });
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement>): void => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void>  => {
     e.preventDefault();
     setError("");
     setSuccess(false);
@@ -81,7 +82,7 @@ export default function Profile() {
       setTimeout(() => setSuccess(false), 3000);
 
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setSaving(false);
     }
@@ -146,11 +147,11 @@ export default function Profile() {
             </div>
             <div>
               <p className="text-gray-500 mb-1">Cuenta creada</p>
-              <p className="text-gray-900">{new Date(user?.createdAt).toLocaleDateString('es-ES')}</p>
+              <p className="text-gray-900">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString('es-ES') : '—'}</p>
             </div>
             <div>
               <p className="text-gray-500 mb-1">Última actualización</p>
-              <p className="text-gray-900">{new Date(user?.updatedAt).toLocaleDateString('es-ES')}</p>
+              <p className="text-gray-900">{user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString('es-ES') : '—'}</p>
             </div>
           </div>
         </div>

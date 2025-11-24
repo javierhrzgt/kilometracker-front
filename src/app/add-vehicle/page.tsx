@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { AddVehicleFormData } from "@/Types";
 
 export default function AddVehicle() {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AddVehicleFormData>({
     alias: "",
     marca: "",
     modelo: new Date().getFullYear(),
@@ -12,19 +13,20 @@ export default function AddVehicle() {
     kilometrajeInicial: "",
     isActive: true,
   });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
   const router = useRouter();
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData(prev => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setLoading(true);
@@ -52,14 +54,14 @@ export default function AddVehicle() {
       router.push("/dashboard");
 
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
   };
 
   const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 30 }, (_, i) => currentYear - i);
+  const years: number[] = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
   return (
     <div className="min-h-screen bg-white">

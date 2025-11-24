@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
+import type { FuelAnalysis } from "@/Types";
 
-export default function FuelAnalysis() {
-  const params = useParams();
-  const alias = params.alias;
-  const [analysis, setAnalysis] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
+export default function FuelAnalysisPage() {
+  const params = useParams<{ alias: string }>();
+  const alias: string = params.alias;
+
+  const [analysis, setAnalysis] = useState<FuelAnalysis | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string>("");
   const router = useRouter();
 
   useEffect(() => {
@@ -17,7 +19,7 @@ export default function FuelAnalysis() {
     }
   }, [alias]);
 
-  const fetchAnalysis = async () => {
+  const fetchAnalysis = async (): Promise<void> => {
     try {
       const response = await fetch(`/api/refuels/vehicle/${alias}/analysis`, {
         credentials: "include",
@@ -30,7 +32,7 @@ export default function FuelAnalysis() {
       const data = await response.json();
       setAnalysis(data.data);
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -61,9 +63,13 @@ export default function FuelAnalysis() {
               ← Volver
             </button>
             <div className="flex-1 min-w-0">
-              <h1 className="text-2xl font-light text-gray-900 truncate">Combustible · {alias}</h1>
+              <h1 className="text-2xl font-light text-gray-900 truncate">
+                Combustible · {alias}
+              </h1>
               {vehicle && (
-                <p className="text-sm text-gray-500">{vehicle.marca} {vehicle.modelo}</p>
+                <p className="text-sm text-gray-500">
+                  {vehicle.marca} {vehicle.modelo}
+                </p>
               )}
             </div>
           </div>
@@ -84,30 +90,38 @@ export default function FuelAnalysis() {
             {/* Summary Stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
-                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Recargas</p>
+                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+                  Recargas
+                </p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
                   {summary?.totalReabastecimientos || 0}
                 </p>
               </div>
 
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
-                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Total</p>
+                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+                  Total
+                </p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
-                  Q {parseFloat(summary?.totalGastado || 0).toFixed(2)}
+                  Q {Number(summary?.totalGastado || 0).toFixed(2)}
                 </p>
               </div>
 
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
-                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Galones</p>
+                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+                  Galones
+                </p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
-                  {parseFloat(summary?.totalGalones || 0).toFixed(2)}
+                  {Number(summary?.totalGalones || 0).toFixed(2)}
                 </p>
               </div>
 
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
-                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Promedio</p>
+                <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">
+                  Promedio
+                </p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
-                  Q {parseFloat(summary?.promedioGalonPrice || 0).toFixed(2)}
+                  Q {Number(summary?.promedioGalonPrice || 0).toFixed(2)}
                 </p>
               </div>
             </div>
@@ -120,20 +134,31 @@ export default function FuelAnalysis() {
                 </h3>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
                   {Object.entries(porTipo).map(([tipo, datos]) => (
-                    <div key={tipo} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      <h4 className="font-medium text-base mb-3 text-gray-900">{tipo}</h4>
+                    <div
+                      key={tipo}
+                      className="border border-gray-200 rounded-lg p-4 bg-gray-50"
+                    >
+                      <h4 className="font-medium text-base mb-3 text-gray-900">
+                        {tipo}
+                      </h4>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-gray-500">Recargas:</span>
-                          <span className="font-medium text-gray-900">{datos.cantidad}</span>
+                          <span className="font-medium text-gray-900">
+                            {datos.cantidad}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Gasto:</span>
-                          <span className="font-medium text-gray-900">Q {datos.gasto.toFixed(2)}</span>
+                          <span className="font-medium text-gray-900">
+                            Q {datos.gasto.toFixed(2)}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-gray-500">Galones:</span>
-                          <span className="font-medium text-gray-900">{datos.galones.toFixed(2)}</span>
+                          <span className="font-medium text-gray-900">
+                            {datos.galones.toFixed(2)}
+                          </span>
                         </div>
                         {datos.galones > 0 && (
                           <div className="flex justify-between pt-2 border-t border-gray-200">
@@ -151,21 +176,35 @@ export default function FuelAnalysis() {
             )}
 
             {/* Resumen */}
-            {summary?.totalReabastecimientos > 0 && (
+            {summary && summary.totalReabastecimientos > 0 && (
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-gray-50">
                 <h3 className="text-base sm:text-lg font-medium mb-3 text-gray-900">
                   Resumen
                 </h3>
                 <div className="space-y-2 text-sm text-gray-700">
                   <p>
-                    Has realizado <span className="font-medium text-gray-900">{summary.totalReabastecimientos}</span> reabastecimientos
-                    con un gasto total de <span className="font-medium text-gray-900">Q {parseFloat(summary.totalGastado).toFixed(2)}</span>.
+                    Has realizado{" "}
+                    <span className="font-medium text-gray-900">
+                      {summary.totalReabastecimientos}
+                    </span>{" "}
+                    reabastecimientos con un gasto total de{" "}
+                    <span className="font-medium text-gray-900">
+                      Q {Number(summary.totalGastado).toFixed(2)}
+                    </span>
+                    .
                   </p>
                   <p>
-                    {parseFloat(summary.totalGalones) > 0 ? (
+                    {Number(summary.totalGalones) > 0 ? (
                       <>
-                        Total de <span className="font-medium text-gray-900">{parseFloat(summary.totalGalones).toFixed(2)}</span> galones
-                        a un promedio de <span className="font-medium text-gray-900">Q {parseFloat(summary.promedioGalonPrice).toFixed(2)}</span> por galón.
+                        Total de{" "}
+                        <span className="font-medium text-gray-900">
+                          {Number(summary.totalGalones).toFixed(2)}
+                        </span>{" "}
+                        galones a un promedio de{" "}
+                        <span className="font-medium text-gray-900">
+                          Q {Number(summary.promedioGalonPrice).toFixed(2)}
+                        </span>{" "}
+                        por galón.
                       </>
                     ) : (
                       <>No hay datos de galones registrados.</>
@@ -214,7 +253,9 @@ export default function FuelAnalysis() {
           </div>
         ) : (
           <div className="text-center py-16 border border-gray-200 rounded-lg">
-            <p className="text-gray-400">No hay datos de análisis disponibles</p>
+            <p className="text-gray-400">
+              No hay datos de análisis disponibles
+            </p>
           </div>
         )}
       </main>

@@ -1,21 +1,24 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter, useParams } from "next/navigation";
+import { EditVehicleFormData } from "@/Types";
 
 export default function EditVehicle() {
-  const params = useParams();
-  const alias = params.alias;
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<EditVehicleFormData>({
     marca: "",
     modelo: new Date().getFullYear(),
     plates: "",
     kilometrajeInicial: "",
     isActive: true,
   });
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState<boolean>(true);
+  const [saving, setSaving] = useState<boolean>(false);
+  const [error, setError] = useState<string>("");
+
+  const params = useParams<{ alias: string }>();
+  const alias: string = params.alias;
+  
   const router = useRouter();
 
   useEffect(() => {
@@ -45,21 +48,22 @@ export default function EditVehicle() {
         isActive: vehicle.isActive,
       });
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value, type, checked } = e.target;
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>):void => {
+    const { name, value, type } = e.target;
+    const checked = 'checked' in e.target ? e.target.checked : false;
     setFormData(prev => ({
       ...prev,
       [name]: type === "checkbox" ? checked : value
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
     setError("");
     setSaving(true);
@@ -87,7 +91,7 @@ export default function EditVehicle() {
       router.push("/dashboard");
 
     } catch (err) {
-      setError(err.message);
+      setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setSaving(false);
     }
