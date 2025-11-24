@@ -99,16 +99,6 @@ export default function Home() {
               className="w-full border border-gray-300 rounded p-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
             />
           </div>
-          {/* Register Button */}
-          <div className="text-center text-sm text-gray-400 mt-4">
-            ¿No tienes cuenta?{" "}
-            <button
-              onClick={() => router.push("/register")}
-              className="text-blue-400 hover:text-blue-300"
-            >
-              Regístrate
-            </button>
-          </div>
 
           {/* Submit Button */}
           <button
@@ -118,9 +108,21 @@ export default function Home() {
           >
             {loading ? "Cargando..." : "Iniciar sesión"}
           </button>
+
+          {/* Register Link */}
+          <div className="text-center text-sm text-gray-500">
+            ¿No tienes cuenta?{" "}
+            <button
+              type="button"
+              onClick={() => router.push("/register")}
+              className="text-gray-900 hover:text-gray-700 font-medium"
+            >
+              Regístrate
+            </button>
+          </div>
         </form>
 
-        {/* Footer (opcional) */}
+        {/* Footer */}
         <div className="mt-8 text-center">
           <p className="text-xs text-gray-500">
             Sistema de gestión de vehículos

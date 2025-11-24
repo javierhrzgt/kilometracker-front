@@ -9,7 +9,7 @@ export default function Register() {
     email: "",
     password: "",
     confirmPassword: "",
-    role: "read",
+    role: "write", // Rol por defecto
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,7 +46,7 @@ export default function Register() {
           username: formData.username,
           email: formData.email,
           password: formData.password,
-          role: "write",
+          role: "write", // Siempre write por defecto
         }),
       });
 
@@ -56,7 +56,6 @@ export default function Register() {
         throw new Error(data.error || "Error al registrar usuario");
       }
 
-      // Redirigir al login
       router.push("/?registered=true");
 
     } catch (err) {
@@ -67,94 +66,127 @@ export default function Register() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center h-screen bg-gray-950 text-gray-100">
-      <div className="w-96 grid gap-y-4 border p-12 rounded-xl bg-gray-900 border-gray-700">
-        <h1 className="text-2xl text-center mb-4">Crear Cuenta</h1>
+    <div className="flex flex-col justify-center items-center min-h-screen bg-white px-4">
+      <div className="w-full max-w-md">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl font-light text-gray-900 mb-2">Crear cuenta</h1>
+          <p className="text-sm text-gray-500">Regístrate para comenzar</p>
+        </div>
         
-        {error && (
-          <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 p-3 rounded-md text-sm">
-            {error}
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Error Message */}
+          {error && (
+            <div className="p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
+              {error}
+            </div>
+          )}
+          
+          {/* Username */}
+          <div>
+            <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+              Nombre de usuario
+            </label>
+            <input
+              id="username"
+              name="username"
+              required
+              type="text"
+              placeholder="usuario123"
+              value={formData.username}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full border border-gray-300 rounded p-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+            />
           </div>
-        )}
-        
-        <div>
-          <label htmlFor="username" className="block text-sm mb-2">Nombre de usuario</label>
-          <input
-            id="username"
-            name="username"
-            required
-            className="w-full border rounded-md p-2 bg-gray-800 border-gray-600 text-white focus:border-blue-500 focus:outline-none"
-            type="text"
-            placeholder="usuario123"
-            value={formData.username}
-            onChange={handleChange}
-            disabled={loading}
-          />
-        </div>
 
-        <div>
-          <label htmlFor="email" className="block text-sm mb-2">Email</label>
-          <input
-            id="email"
-            name="email"
-            required
-            className="w-full border rounded-md p-2 bg-gray-800 border-gray-600 text-white focus:border-blue-500 focus:outline-none"
-            type="email"
-            placeholder="email@example.com"
-            autoComplete="email"
-            value={formData.email}
-            onChange={handleChange}
-            disabled={loading}
-          />
-        </div>
-        
-        <div>
-          <label htmlFor="password" className="block text-sm mb-2">Contraseña</label>
-          <input
-            id="password"
-            name="password"
-            required
-            className="w-full border rounded-md p-2 bg-gray-800 border-gray-600 text-white focus:border-blue-500 focus:outline-none"
-            autoComplete="new-password"
-            type="password"
-            placeholder="******"
-            value={formData.password}
-            onChange={handleChange}
-            disabled={loading}
-          />
-        </div>
+          {/* Email */}
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+              Correo electrónico
+            </label>
+            <input
+              id="email"
+              name="email"
+              required
+              type="email"
+              placeholder="correo@ejemplo.com"
+              autoComplete="email"
+              value={formData.email}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full border border-gray-300 rounded p-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+            />
+          </div>
+          
+          {/* Password */}
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+              Contraseña
+            </label>
+            <input
+              id="password"
+              name="password"
+              required
+              autoComplete="new-password"
+              type="password"
+              placeholder="••••••••"
+              value={formData.password}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full border border-gray-300 rounded p-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+            />
+          </div>
 
-        <div>
-          <label htmlFor="confirmPassword" className="block text-sm mb-2">Confirmar contraseña</label>
-          <input
-            id="confirmPassword"
-            name="confirmPassword"
-            required
-            className="w-full border rounded-md p-2 bg-gray-800 border-gray-600 text-white focus:border-blue-500 focus:outline-none"
-            autoComplete="new-password"
-            type="password"
-            placeholder="******"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-            disabled={loading}
-          />
-        </div>        
-        <button 
-          className="mt-4 border rounded-2xl bg-blue-800 hover:bg-blue-700 p-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" 
-          onClick={handleSubmit}
-          disabled={loading}
-        >
-          {loading ? "Registrando..." : "Registrarse"}
-        </button>
+          {/* Confirm Password */}
+          <div>
+            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 mb-2">
+              Confirmar contraseña
+            </label>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              required
+              autoComplete="new-password"
+              type="password"
+              placeholder="••••••••"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              disabled={loading}
+              className="w-full border border-gray-300 rounded p-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+            />
+          </div>
+          
+          {/* Submit Button */}
+          <div className="pt-4">
+            <button 
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? "Registrando..." : "Crear cuenta"}
+            </button>
+          </div>
 
-        <div className="text-center text-sm text-gray-400 mt-2">
-          ¿Ya tienes cuenta?{" "}
-          <button
-            onClick={() => router.push("/")}
-            className="text-blue-400 hover:text-blue-300"
-          >
-            Inicia sesión
-          </button>
+          {/* Login Link */}
+          <div className="text-center text-sm text-gray-500">
+            ¿Ya tienes cuenta?{" "}
+            <button
+              type="button"
+              onClick={() => router.push("/")}
+              className="text-gray-900 hover:text-gray-700 font-medium"
+            >
+              Inicia sesión
+            </button>
+          </div>
+        </form>
+
+        {/* Footer */}
+        <div className="mt-8 text-center">
+          <p className="text-xs text-gray-500">
+            Sistema de gestión de vehículos
+          </p>
         </div>
       </div>
     </div>

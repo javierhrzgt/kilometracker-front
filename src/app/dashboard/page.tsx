@@ -119,6 +119,12 @@ export default function Dashboard() {
                 Recargas
               </button>
               <button
+                onClick={() => router.push("/profile")}
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+              >
+                Perfil
+              </button>
+              <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
               >
@@ -200,10 +206,13 @@ export default function Dashboard() {
                   Ver Historial de Recargas
                 </button>
                 <button
-                  onClick={() => router.push("/profile")}
-                  className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg transition-colors font-semibold"
+                  onClick={() => {
+                    router.push("/profile");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
                 >
-                  👤 Perfil
+                  Ver Perfil
                 </button>
                 <button
                   onClick={() => {
@@ -370,13 +379,19 @@ export default function Dashboard() {
                     </p>
                     <div className="flex gap-2">
                       <button
-                        onClick={() => handleDelete(vehicle.alias)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDelete(vehicle.alias);
+                        }}
                         className="flex-1 px-4 py-2 text-sm bg-red-600 text-white hover:bg-red-700 rounded transition-colors"
                       >
                         Confirmar
                       </button>
                       <button
-                        onClick={() => setDeleteConfirm(null)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleteConfirm(null);
+                        }}
                         className="flex-1 px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 rounded transition-colors"
                       >
                         Cancelar

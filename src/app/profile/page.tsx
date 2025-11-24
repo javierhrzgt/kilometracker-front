@@ -89,111 +89,121 @@ export default function Profile() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center h-screen bg-gray-950 text-gray-100">
-        <div className="text-xl">Cargando perfil...</div>
+      <div className="flex justify-center items-center min-h-screen bg-white">
+        <div className="text-gray-600">Cargando...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-950 text-gray-100 p-8">
-      <div className="max-w-2xl mx-auto">
-        <div className="flex items-center gap-4 mb-8">
-          <button
-            onClick={() => router.push("/dashboard")}
-            className="px-4 py-2 bg-gray-800 hover:bg-gray-700 rounded-lg transition-colors"
-          >
-            ← Volver
-          </button>
-          <h1 className="text-3xl font-bold">Mi Perfil</h1>
+    <div className="min-h-screen bg-white">
+      {/* Header */}
+      <header className="border-b border-gray-200 sticky top-0 bg-white z-50">
+        <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => router.push("/dashboard")}
+              className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 rounded transition-colors"
+            >
+              ← Volver
+            </button>
+            <h1 className="text-xl sm:text-2xl font-light text-gray-900">Mi perfil</h1>
+          </div>
         </div>
+      </header>
 
+      {/* Content */}
+      <main className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
+        {/* Success Message */}
         {success && (
-          <div className="bg-green-500 bg-opacity-20 border border-green-500 text-green-300 p-4 rounded-lg mb-6">
-            ✓ Perfil actualizado exitosamente
+          <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-800 text-sm rounded">
+            Perfil actualizado exitosamente
           </div>
         )}
 
+        {/* Error Message */}
         {error && (
-          <div className="bg-red-500 bg-opacity-20 border border-red-500 text-red-300 p-4 rounded-lg mb-6">
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
             {error}
           </div>
         )}
 
-        <div className="bg-gray-900 border border-gray-700 rounded-lg p-8">
-          <div className="space-y-6">
-            {/* Info del usuario */}
-            <div className="pb-6 border-b border-gray-700">
-              <h2 className="text-xl font-semibold mb-4">Información de la cuenta</h2>
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-400">Rol</p>
-                  <p className="font-semibold capitalize">{user?.role}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Estado</p>
-                  <p className={`font-semibold ${user?.isActive ? 'text-green-400' : 'text-red-400'}`}>
-                    {user?.isActive ? 'Activo' : 'Inactivo'}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Cuenta creada</p>
-                  <p>{new Date(user?.createdAt).toLocaleDateString('es-ES')}</p>
-                </div>
-                <div>
-                  <p className="text-gray-400">Última actualización</p>
-                  <p>{new Date(user?.updatedAt).toLocaleDateString('es-ES')}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Formulario de edición */}
+        {/* Account Info */}
+        <div className="border border-gray-200 rounded-lg p-4 sm:p-6 mb-6 bg-white">
+          <h2 className="text-base sm:text-lg font-medium mb-4 text-gray-900">
+            Información de la cuenta
+          </h2>
+          <div className="grid grid-cols-2 gap-4 text-sm">
             <div>
-              <h2 className="text-xl font-semibold mb-4">Editar perfil</h2>
-              
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="username" className="block text-sm font-medium mb-2">
-                    Nombre de usuario
-                  </label>
-                  <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    value={formData.username}
-                    onChange={handleChange}
-                    disabled={saving}
-                    className="w-full border rounded-md p-3 bg-gray-800 border-gray-600 text-white focus:border-blue-500 focus:outline-none disabled:opacity-50"
-                  />
-                </div>
-
-                <div>
-                  <label htmlFor="email" className="block text-sm font-medium mb-2">
-                    Email
-                  </label>
-                  <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    disabled={saving}
-                    className="w-full border rounded-md p-3 bg-gray-800 border-gray-600 text-white focus:border-blue-500 focus:outline-none disabled:opacity-50"
-                  />
-                </div>
-
-                <button
-                  onClick={handleSubmit}
-                  disabled={saving}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? "Guardando..." : "Guardar cambios"}
-                </button>
-              </div>
+              <p className="text-gray-500 mb-1">Rol</p>
+              <p className="font-medium text-gray-900 capitalize">{user?.role}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1">Estado</p>
+              <p className={`font-medium ${user?.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                {user?.isActive ? 'Activo' : 'Inactivo'}
+              </p>
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1">Cuenta creada</p>
+              <p className="text-gray-900">{new Date(user?.createdAt).toLocaleDateString('es-ES')}</p>
+            </div>
+            <div>
+              <p className="text-gray-500 mb-1">Última actualización</p>
+              <p className="text-gray-900">{new Date(user?.updatedAt).toLocaleDateString('es-ES')}</p>
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Edit Form */}
+        <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
+          <h2 className="text-base sm:text-lg font-medium mb-4 text-gray-900">
+            Editar perfil
+          </h2>
+          
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div>
+              <label htmlFor="username" className="block text-sm font-medium text-gray-700 mb-2">
+                Nombre de usuario
+              </label>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                value={formData.username}
+                onChange={handleChange}
+                disabled={saving}
+                className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Correo electrónico
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                value={formData.email}
+                onChange={handleChange}
+                disabled={saving}
+                className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+              />
+            </div>
+
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={saving}
+                className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {saving ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </main>
     </div>
   );
 }
