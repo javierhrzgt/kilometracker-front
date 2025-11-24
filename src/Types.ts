@@ -122,3 +122,9 @@ export interface RouteFilters {
   startDate: string;
   endDate: string;
 }
+
+export interface PasswordChangeFormData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}

@@ -31,6 +31,8 @@ The frontend acts as a BFF (Backend for Frontend) proxy to an external API:
 - Backend API URL is configured in `.env.local` via `API_BASE_URL`
 - All API routes in `src/app/api/` are proxy handlers that forward requests to the backend
 - Authentication uses JWT tokens stored in HTTP-only cookies
+- Role-based access control: `read`, `write`, `admin` roles
+- Backend uses soft delete pattern for users (sets `isActive: false` instead of hard deletion)
 
 ### Project Structure
 ```
@@ -47,10 +49,22 @@ src/
 │   ├── add-refuel/               # Log fuel refill
 │   ├── routes-history/           # View all routes
 │   ├── refuels-history/          # View all refuels
-│   ├── profile/                  # User profile settings
+│   ├── profile/                  # User profile settings + password change
 │   ├── register/                 # User registration
+│   ├── admin-users/              # Admin panel for user management (admin only)
 │   └── api/                      # API proxy routes (all .js files)
 │       ├── auth/                 # Authentication endpoints
+│       │   ├── login/            # User login
+│       │   ├── logout/           # User logout
+│       │   ├── register/         # User registration
+│       │   ├── me/               # Get current user
+│       │   ├── updateprofile/    # Update user profile
+│       │   ├── updatepassword/   # Change password
+│       │   └── users/            # Admin user management
+│       │       ├── route.js      # List users (GET)
+│       │       └── [id]/         # User operations by ID
+│       │           ├── route.js  # Get/Delete/Reactivate user
+│       │           └── role/     # Change user role (PUT)
 │       ├── vehicles/             # Vehicle CRUD operations
 │       ├── routes/               # Route tracking endpoints
 │       └── refuels/              # Refuel tracking endpoints
@@ -73,9 +87,10 @@ Vehicles are identified by `alias` (unique string) rather than database ID in UR
 
 **3. Authentication Flow**
 - Login → Token stored in HTTP-only cookie → Middleware checks token
-- Middleware (`middleware.js`) protects `/dashboard/*` routes
+- Middleware (`middleware.js`) protects `/dashboard/*` and `/admin-users/*` routes
 - Redirects authenticated users from `/` to `/dashboard`
-- Redirects unauthenticated users from `/dashboard/*` to `/`
+- Redirects unauthenticated users from protected routes to `/`
+- Admin-only pages verify user role on client-side and redirect non-admins to `/dashboard`
 
 **4. Type Safety**
 All entity types are defined in `src/Types.ts`:
@@ -86,6 +101,49 @@ All entity types are defined in `src/Types.ts`:
 
 **5. Client Components**
 All page components use `"use client"` directive for interactive features (forms, state management, routing). The app does not use Server Components for data fetching; instead it uses client-side `fetch()` calls to `/api/*` routes.
+
+## Backend API Endpoints
+
+The backend provides these endpoints (accessed through frontend proxy routes):
+
+### Authentication & User Management
+- `POST /api/auth/login` - User login (returns JWT token)
+- `POST /api/auth/register` - User registration
+- `POST /api/auth/logout` - User logout (clears token)
+- `GET /api/auth/me` - Get current user profile
+- `PUT /api/auth/updateprofile` - Update user profile (username, email)
+- `PUT /api/auth/updatepassword` - Change password (requires current password)
+
+### Admin-Only User Management
+These endpoints require `admin` role:
+- `GET /api/auth/users` - List all users (supports `?isActive=true/false` filter)
+- `GET /api/auth/users/:id` - View specific user details
+- `PUT /api/auth/users/:id/role` - Update user role (`read`, `write`, `admin`)
+- `DELETE /api/auth/users/:id` - Deactivate user (soft delete, cannot deactivate self)
+- `PATCH /api/auth/users/:id/reactivate` - Reactivate deactivated user
+
+### Vehicles
+- `GET /api/vehicles` - List all vehicles (supports `?isActive` and `?includeInactive` params)
+- `POST /api/vehicles` - Create new vehicle
+- `GET /api/vehicles/:alias` - Get vehicle by alias
+- `PUT /api/vehicles/:alias` - Update vehicle
+- `DELETE /api/vehicles/:alias` - Delete vehicle
+- `GET /api/vehicles/:alias/stats` - Get vehicle statistics (total routes, distance, fuel costs)
+
+### Routes (Trips)
+- `GET /api/routes` - List all routes
+- `POST /api/routes` - Create new route
+- `GET /api/routes/:id` - Get route by ID
+- `PUT /api/routes/:id` - Update route
+- `DELETE /api/routes/:id` - Delete route
+
+### Refuels
+- `GET /api/refuels` - List all refuels
+- `POST /api/refuels` - Create new refuel record
+- `GET /api/refuels/:id` - Get refuel by ID
+- `PUT /api/refuels/:id` - Update refuel
+- `DELETE /api/refuels/:id` - Delete refuel
+- `GET /api/refuels/vehicle/:alias/analysis` - Get fuel analysis for specific vehicle
 
 ## Configuration
 

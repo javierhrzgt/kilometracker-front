@@ -4,8 +4,8 @@ export function middleware(request) {
   const token = request.cookies.get('token');
   const { pathname } = request.nextUrl;
 
-  // Si intenta acceder al dashboard sin token, redirigir al login
-  if (pathname.startsWith('/dashboard') && !token) {
+  // Si intenta acceder al dashboard o admin-users sin token, redirigir al login
+  if ((pathname.startsWith('/dashboard') || pathname.startsWith('/admin-users')) && !token) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
@@ -18,5 +18,5 @@ export function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*'],
+  matcher: ['/', '/dashboard/:path*', '/admin-users/:path*'],
 };

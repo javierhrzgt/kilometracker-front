@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect, MouseEvent } from "react";
-import { Vehicle } from "@/Types";
+import { Vehicle, User } from "@/Types";
 import { useRouter } from "next/navigation";
 
 export default function Dashboard() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
@@ -14,8 +15,25 @@ export default function Dashboard() {
   const router = useRouter();
 
   useEffect(() => {
+    fetchCurrentUser();
     fetchVehicles();
   }, []);
+
+  const fetchCurrentUser = async () => {
+    try {
+      const response = await fetch("/api/auth/me", {
+        credentials: "include",
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCurrentUser(data.data);
+      }
+    } catch (err) {
+      // Silently fail - user info is optional for this feature
+      console.error("Error fetching user:", err);
+    }
+  };
 
   const fetchVehicles = async (): Promise<void> => {
     try {
@@ -125,6 +143,14 @@ export default function Dashboard() {
               >
                 Perfil
               </button>
+              {currentUser?.role === "admin" && (
+                <button
+                  onClick={() => router.push("/admin-users")}
+                  className="px-4 py-2 text-sm border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors rounded"
+                >
+                  Panel Admin
+                </button>
+              )}
               <button
                 onClick={handleLogout}
                 className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
@@ -215,6 +241,17 @@ export default function Dashboard() {
                 >
                   Ver Perfil
                 </button>
+                {currentUser?.role === "admin" && (
+                  <button
+                    onClick={() => {
+                      router.push("/admin-users");
+                      setMenuOpen(false);
+                    }}
+                    className="w-full px-4 py-3 text-left text-sm border border-purple-300 text-purple-700 hover:bg-purple-50 transition-colors rounded"
+                  >
+                    Panel de Administración
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     handleLogout();
