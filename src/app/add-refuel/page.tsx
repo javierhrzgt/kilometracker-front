@@ -3,6 +3,12 @@
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
+interface Vehicle {
+  alias: string;
+  isActive: boolean;
+  // ... otros campos
+}
+
 export default function AddRefuel() {
   const searchParams = useSearchParams();
   const vehicleFromUrl = searchParams.get('vehicle');
@@ -45,7 +51,7 @@ export default function AddRefuel() {
       
       // Solo seleccionar automáticamente si no hay vehículo pre-seleccionado desde URL
       if (!vehicleFromUrl) {
-        const activeVehicle = data.data?.find(v => v.isActive);
+        const activeVehicle = data.data?.find((v: Vehicle) => v.isActive);
         if (activeVehicle) {
           setFormData(prev => ({ ...prev, vehicleAlias: activeVehicle.alias }));
         }
