@@ -168,7 +168,6 @@ export interface Expense {
   esDeducibleImpuestos: boolean;
   notas?: string;
   owner?: string;
-  isActive?: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -259,4 +258,62 @@ export interface ExpenseFilters {
   startDate: string;
   endDate: string;
   esDeducibleImpuestos: string;
+}
+
+export interface Maintenance {
+  _id: string;
+  vehicleAlias: string;
+  vehicle?: {
+    _id: string;
+    alias: string;
+    marca: string;
+    modelo: number;
+  };
+  tipo: string;
+  descripcion: string;
+  costo: number;
+  fecha: string;
+  kilometraje: number;
+  proveedor?: string;
+  proximoServicioFecha?: string;
+  proximoServicioKm?: number;
+  notas?: string;
+  owner?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddMaintenanceFormData {
+  vehicleAlias: string;
+  tipo: string;
+  descripcion: string;
+  costo: string;
+  fecha: string;
+  kilometraje: string;
+  proveedor: string;
+  proximoServicioFecha: string;
+  proximoServicioKm: string;
+  notas: string;
+}
+
+export interface UpcomingMaintenance {
+  _id: string;
+  vehicleAlias: string;
+  vehicle?: {
+    _id: string;
+    alias: string;
+    marca: string;
+    modelo: number;
+    kilometrajeTotal: number;
+  };
+  tipo: string;
+  proximoServicioFecha?: string;
+  proximoServicioKm?: number;
+}
+
+export interface MaintenanceFilters {
+  vehicleAlias: string;
+  tipo: string;
+  startDate: string;
+  endDate: string;
 }

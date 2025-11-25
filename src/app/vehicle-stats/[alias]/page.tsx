@@ -204,25 +204,25 @@ export default function VehicleStatsPage() {
                   <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
                     <p className="text-xs text-gray-500 mb-1">Combustible</p>
                     <p className="text-lg sm:text-xl font-semibold text-blue-600">
-                      ${stats.costs.combustible.toFixed(2)}
+                      Q {stats.costs.combustible.toFixed(2)}
                     </p>
                   </div>
                   <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
                     <p className="text-xs text-gray-500 mb-1">Mantenimiento</p>
                     <p className="text-lg sm:text-xl font-semibold text-orange-600">
-                      ${stats.costs.mantenimiento.toFixed(2)}
+                      Q {stats.costs.mantenimiento.toFixed(2)}
                     </p>
                   </div>
                   <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
                     <p className="text-xs text-gray-500 mb-1">Otros Gastos</p>
                     <p className="text-lg sm:text-xl font-semibold text-purple-600">
-                      ${stats.costs.gastosOtros.toFixed(2)}
+                      Q {stats.costs.gastosOtros.toFixed(2)}
                     </p>
                   </div>
                   <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
                     <p className="text-xs text-gray-500 mb-1">Total</p>
                     <p className="text-lg sm:text-xl font-semibold text-gray-900">
-                      ${stats.costs.total.toFixed(2)}
+                      Q {stats.costs.total.toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -258,7 +258,7 @@ export default function VehicleStatsPage() {
                   <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
                     <p className="text-xs text-gray-500 mb-1">Costo por km</p>
                     <p className="text-lg sm:text-2xl font-semibold text-orange-600">
-                      ${stats.costs?.costoPorKm?.toFixed(3) || '0.000'}
+                      Q {stats.costs?.costoPorKm?.toFixed(3) || '0.000'}
                     </p>
                   </div>
                 </div>
@@ -272,11 +272,11 @@ export default function VehicleStatsPage() {
                   Costo Total de Propiedad
                 </h3>
                 <p className="text-3xl sm:text-4xl font-bold">
-                  ${stats.totalCostOfOwnership.toFixed(2)}
+                  Q {stats.totalCostOfOwnership.toFixed(2)}
                 </p>
                 {stats.totalDistancia && stats.totalDistancia > 0 && stats.totalCostOfOwnership > 0 && (
                   <p className="text-sm text-gray-300 mt-2">
-                    Costo promedio: ${(stats.totalCostOfOwnership / stats.totalDistancia).toFixed(3)}/km
+                    Costo promedio: Q {(stats.totalCostOfOwnership / stats.totalDistancia).toFixed(3)}/km
                   </p>
                 )}
               </div>

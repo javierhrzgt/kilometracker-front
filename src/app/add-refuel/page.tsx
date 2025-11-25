@@ -35,7 +35,7 @@ function AddRefuelForm({ vehicleFromUrl }: { vehicleFromUrl: string | null }) {
   const [success, setSuccess] = useState(false);
   const router = useRouter();
 
-  const tiposCombustible = ["Regular", "Super", "V-Power", "Diesel"];
+  const tiposCombustible = ["Regular", "Premium", "Diesel", "Eléctrico", "Híbrido", "V-Power"];
 
   useEffect(() => {
     fetchVehicles();

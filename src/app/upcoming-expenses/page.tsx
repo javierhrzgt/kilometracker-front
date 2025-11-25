@@ -184,7 +184,7 @@ export default function UpcomingExpenses() {
             <div>
               <p className="text-sm text-gray-500 mb-1">Total de Gastos Próximos</p>
               <p className="text-3xl font-semibold text-gray-900">
-                ${totalUpcoming.toFixed(2)}
+                Q {totalUpcoming.toFixed(2)}
               </p>
             </div>
             <div>
@@ -264,7 +264,7 @@ export default function UpcomingExpenses() {
                     <div className="ml-6 text-right">
                       <p className="text-sm text-gray-500 mb-1">Monto</p>
                       <p className="text-2xl font-semibold text-gray-900">
-                        ${expense.monto.toFixed(2)}
+                        Q {expense.monto.toFixed(2)}
                       </p>
                     </div>
                   </div>
