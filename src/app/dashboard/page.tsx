@@ -138,6 +138,30 @@ export default function Dashboard() {
                 Recargas
               </button>
               <button
+                onClick={() => router.push("/add-expense")}
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+              >
+                + Gasto
+              </button>
+              <button
+                onClick={() => router.push("/expenses-history")}
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+              >
+                Gastos
+              </button>
+              <button
+                onClick={() => router.push("/expenses-summary")}
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+              >
+                Resumen
+              </button>
+              <button
+                onClick={() => router.push("/upcoming-expenses")}
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+              >
+                Próximos
+              </button>
+              <button
                 onClick={() => router.push("/profile")}
                 className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
               >
@@ -231,6 +255,42 @@ export default function Dashboard() {
                   className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
                 >
                   Ver Historial de Recargas
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/add-expense");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+                >
+                  + Agregar Gasto
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/expenses-history");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+                >
+                  Ver Historial de Gastos
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/expenses-summary");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+                >
+                  Resumen de Gastos
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/upcoming-expenses");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+                >
+                  Gastos Próximos
                 </button>
                 <button
                   onClick={() => {

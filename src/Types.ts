@@ -19,6 +19,7 @@ export interface Route {
   distanciaRecorrida: number;
   fecha: string;
   notasAdicionales?: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -32,6 +33,7 @@ export interface Refuel {
   precioPorGalon?: number;
   fecha: string;
   notasAdicionales?: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -47,11 +49,35 @@ export interface User {
 }
 
 export interface VehicleStats {
-  totalRoutes: number;
-  totalDistancia: number;
-  promedioDistanciaPorRuta: number;
-  totalRefuels: number;
-  totalGastoCombustible: number;
+  // Legacy fields (still supported)
+  totalRoutes?: number;
+  totalDistancia?: number;
+  promedioDistanciaPorRuta?: number;
+  totalRefuels?: number;
+  totalGastoCombustible?: number;
+  // Enhanced fields (from backend /api/vehicles/:alias/stats)
+  vehicle?: Vehicle;
+  statistics?: {
+    totalRoutes: number;
+    totalRefuels: number;
+    totalMaintenances: number;
+    totalExpenses: number;
+    totalDistancia: number;
+  };
+  costs?: {
+    combustible: number;
+    mantenimiento: number;
+    gastosOtros: number;
+    total: number;
+    costoPorKm: number;
+  };
+  efficiency?: {
+    kmPorLitro: number;
+    kmPorGalon: number;
+    promedioDistanciaPorRuta: number;
+  };
+  // Additional computed fields
+  totalCostOfOwnership?: number;
 }
 
 export interface FuelAnalysis {
@@ -127,4 +153,110 @@ export interface PasswordChangeFormData {
   currentPassword: string;
   newPassword: string;
   confirmPassword: string;
+}
+
+export interface Expense {
+  _id: string;
+  vehicleAlias: string;
+  categoria: string;
+  monto: number;
+  descripcion: string;
+  fecha: string;
+  esRecurrente: boolean;
+  frecuenciaRecurrencia?: string; // 'Mensual', 'Trimestral', 'Semestral', 'Anual'
+  proximoPago?: string;
+  esDeducibleImpuestos: boolean;
+  notas?: string;
+  owner?: string;
+  isActive?: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AddExpenseFormData {
+  vehicleAlias: string;
+  categoria: string;
+  monto: string;
+  descripcion: string;
+  fecha: string;
+  esRecurrente: boolean;
+  frecuenciaRecurrencia: string;
+  proximoPago: string;
+  esDeducibleImpuestos: boolean;
+}
+
+export interface ExpenseSummary {
+  _id: string; // categoria name from backend grouping
+  totalMonto: number;
+  cantidad: number;
+}
+
+export interface UpcomingExpense {
+  _id: string;
+  vehicleAlias: string;
+  vehicle?: {
+    _id: string;
+    alias: string;
+    marca: string;
+    modelo: number;
+  };
+  categoria: string;
+  monto: number;
+  descripcion: string;
+  proximoPago: string;
+  frecuenciaRecurrencia: string;
+  esRecurrente: boolean;
+}
+
+export interface EnhancedVehicleStats {
+  counts: {
+    totalRoutes: number;
+    totalRefuels: number;
+    totalMaintenance: number;
+    totalExpenses: number;
+  };
+  costs: {
+    fuelCost: number;
+    maintenanceCost: number;
+    otherExpenses: number;
+    totalCost: number;
+  };
+  efficiency: {
+    kmPerLiter: number;
+    kmPerGallon: number;
+    averageDistancePerRoute: number;
+    costPerKm: number;
+  };
+  totalCostOfOwnership: number;
+  totalDistance: number;
+}
+
+export interface FuelEfficiency {
+  vehicle: {
+    alias: string;
+    marca: string;
+    modelo: number;
+  };
+  efficiency: {
+    kmPorLitro: number;
+    kmPorGalon: number;
+    costoPorKm: number;
+    totalDistancia: number;
+    totalGalones: number;
+    totalGastoCombustible: number;
+  };
+  period: {
+    startDate: string;
+    endDate: string;
+    totalRefuels: number;
+    totalRoutes: number;
+  };
+}
+
+export interface ExpenseFilters {
+  vehicleAlias: string;
+  categoria: string;
+  startDate: string;
+  endDate: string;
+  esDeducibleImpuestos: string;
 }

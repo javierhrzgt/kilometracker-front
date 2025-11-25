@@ -4,7 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Kilometracker v2 is a Next.js 16 application for tracking vehicle mileage and fuel consumption. The app allows users to register vehicles, log routes, track fuel refills, and analyze vehicle statistics.
+Kilometracker v2 is a Next.js 16 application for comprehensive vehicle management. The app allows users to:
+- Register and manage multiple vehicles
+- Track routes/trips and mileage
+- Monitor fuel consumption and efficiency
+- Manage vehicle expenses (insurance, taxes, maintenance, etc.)
+- Analyze fuel efficiency metrics (km/liter, km/gallon, cost per km)
+- Track total cost of ownership
+- Manage recurring expenses and tax-deductible items
+- Admin users can manage user accounts and permissions
 
 ## Commands
 
@@ -49,6 +57,10 @@ src/
 │   ├── add-refuel/               # Log fuel refill
 │   ├── routes-history/           # View all routes
 │   ├── refuels-history/          # View all refuels
+│   ├── add-expense/              # Add new expense form
+│   ├── expenses-history/         # View and filter all expenses
+│   ├── expenses-summary/         # Expense dashboard with category breakdown
+│   ├── upcoming-expenses/        # View recurring expenses due soon
 │   ├── profile/                  # User profile settings + password change
 │   ├── register/                 # User registration
 │   ├── admin-users/              # Admin panel for user management (admin only)
@@ -65,9 +77,17 @@ src/
 │       │       └── [id]/         # User operations by ID
 │       │           ├── route.js  # Get/Delete/Reactivate user
 │       │           └── role/     # Change user role (PUT)
-│       ├── vehicles/             # Vehicle CRUD operations
+│       ├── vehicles/             # Vehicle CRUD operations + stats + fuel efficiency
+│       │   └── [alias]/
+│       │       ├── stats/        # Comprehensive vehicle statistics
+│       │       └── fuel-efficiency/  # Fuel efficiency metrics
 │       ├── routes/               # Route tracking endpoints
-│       └── refuels/              # Refuel tracking endpoints
+│       ├── refuels/              # Refuel tracking endpoints
+│       └── expenses/             # Expense management endpoints
+│           ├── route.js          # List/Create expenses (GET/POST)
+│           ├── [id]/             # Get/Update/Delete expense
+│           ├── summary/          # Aggregated spending by category
+│           └── upcoming/         # Recurring expenses due soon
 └── Types.ts                      # Shared TypeScript interfaces
 
 middleware.js                     # Auth middleware (redirects based on token)
@@ -128,7 +148,8 @@ These endpoints require `admin` role:
 - `GET /api/vehicles/:alias` - Get vehicle by alias
 - `PUT /api/vehicles/:alias` - Update vehicle
 - `DELETE /api/vehicles/:alias` - Delete vehicle
-- `GET /api/vehicles/:alias/stats` - Get vehicle statistics (total routes, distance, fuel costs)
+- `GET /api/vehicles/:alias/stats` - Comprehensive vehicle statistics (routes, refuels, maintenance, expenses, efficiency metrics, total cost of ownership, cost per km)
+- `GET /api/vehicles/:alias/fuel-efficiency` - Calculate fuel efficiency (km/liter, km/gallon, cost per km). Supports `?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`
 
 ### Routes (Trips)
 - `GET /api/routes` - List all routes
@@ -144,6 +165,18 @@ These endpoints require `admin` role:
 - `PUT /api/refuels/:id` - Update refuel
 - `DELETE /api/refuels/:id` - Delete refuel
 - `GET /api/refuels/vehicle/:alias/analysis` - Get fuel analysis for specific vehicle
+
+### Expenses
+- `GET /api/expenses` - List all expenses (supports filters: `?vehicleAlias`, `?category`, `?startDate`, `?endDate`, `?taxDeductible=true/false`)
+- `POST /api/expenses` - Create new expense
+- `GET /api/expenses/:id` - Get expense by ID
+- `PUT /api/expenses/:id` - Update expense
+- `DELETE /api/expenses/:id` - Delete expense (soft delete)
+- `GET /api/expenses/summary` - Aggregated spending by category
+- `GET /api/expenses/upcoming` - Recurring expenses due in next 30 days
+
+**Expense Categories**: insurance, taxes, registration, parking, tolls, fines, maintenance, repairs, other
+**Expense Features**: Recurring expenses (monthly, quarterly, annual), tax-deductible tracking, next payment date
 
 ## Configuration
 

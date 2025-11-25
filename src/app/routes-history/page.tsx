@@ -12,6 +12,7 @@ export default function RoutesHistory() {
     startDate: "",
     endDate: "",
   });
+  const [showInactive, setShowInactive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
@@ -253,11 +254,26 @@ export default function RoutesHistory() {
           </div>
         </div>
 
+        {/* Show Inactive Filter */}
+        <div className="mb-4">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="w-4 h-4 border-gray-300 rounded text-gray-900 focus:ring-2 focus:ring-gray-900"
+            />
+            Mostrar rutas inactivas
+          </label>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-6">
           <div className="border border-gray-200 rounded-lg p-4 bg-white">
             <p className="text-xs sm:text-sm text-gray-500 mb-1">Rutas</p>
-            <p className="text-2xl sm:text-3xl font-light text-gray-900">{routes.length}</p>
+            <p className="text-2xl sm:text-3xl font-light text-gray-900">
+              {showInactive ? routes.length : routes.filter(r => r.isActive !== false).length}
+            </p>
           </div>
           <div className="border border-gray-200 rounded-lg p-4 bg-white">
             <p className="text-xs sm:text-sm text-gray-500 mb-1">Distancia</p>
@@ -285,10 +301,12 @@ export default function RoutesHistory() {
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
-            {routes.map((route) => (
+            {routes.filter(route => showInactive || route.isActive !== false).map((route) => (
               <div
                 key={route._id}
-                className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:border-gray-400 transition-colors bg-white"
+                className={`border rounded-lg p-4 sm:p-6 hover:border-gray-400 transition-colors bg-white ${
+                  route.isActive === false ? "border-gray-200 opacity-60" : "border-gray-200"
+                }`}
               >
                 {editingRoute && editingRoute._id === route._id ? (
                   /* Edit Mode */

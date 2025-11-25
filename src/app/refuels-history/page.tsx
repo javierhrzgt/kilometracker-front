@@ -8,6 +8,7 @@ export default function RefuelsHistory() {
   const [refuels, setRefuels] = useState<Refuel[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filterVehicle, setFilterVehicle] = useState("");
+  const [showInactive, setShowInactive] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingRefuel, setEditingRefuel] = useState<Refuel | null>(null);
@@ -225,11 +226,26 @@ export default function RefuelsHistory() {
           </div>
         </div>
 
+        {/* Show Inactive Filter */}
+        <div className="mb-4">
+          <label className="flex items-center gap-2 cursor-pointer text-sm text-gray-700">
+            <input
+              type="checkbox"
+              checked={showInactive}
+              onChange={(e) => setShowInactive(e.target.checked)}
+              className="w-4 h-4 border-gray-300 rounded text-gray-900 focus:ring-2 focus:ring-gray-900"
+            />
+            Mostrar recargas inactivas
+          </label>
+        </div>
+
         {/* Stats */}
         <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
           <div className="border border-gray-200 rounded-lg p-3 sm:p-4 bg-white">
             <p className="text-xs sm:text-sm text-gray-500 mb-1">Recargas</p>
-            <p className="text-xl sm:text-3xl font-light text-gray-900">{refuels.length}</p>
+            <p className="text-xl sm:text-3xl font-light text-gray-900">
+              {showInactive ? refuels.length : refuels.filter(r => r.isActive !== false).length}
+            </p>
           </div>
           <div className="border border-gray-200 rounded-lg p-3 sm:p-4 bg-white">
             <p className="text-xs sm:text-sm text-gray-500 mb-1">Total</p>
@@ -259,10 +275,12 @@ export default function RefuelsHistory() {
           </div>
         ) : (
           <div className="space-y-3 sm:space-y-4">
-            {refuels.map((refuel) => (
+            {refuels.filter(refuel => showInactive || refuel.isActive !== false).map((refuel) => (
               <div
                 key={refuel._id}
-                className="border border-gray-200 rounded-lg p-4 sm:p-6 hover:border-gray-400 transition-colors bg-white"
+                className={`border rounded-lg p-4 sm:p-6 hover:border-gray-400 transition-colors bg-white ${
+                  refuel.isActive === false ? "border-gray-200 opacity-60" : "border-gray-200"
+                }`}
               >
                 {editingRefuel && editingRefuel._id === refuel._id ? (
                   /* Edit Mode */

@@ -31,7 +31,8 @@ export default function VehicleStatsPage() {
 
       const data = await response.json();
       const statsData = data.data || data;
-      setStats(statsData.statistics);
+      // Set the full statsData which contains statistics, costs, efficiency, etc.
+      setStats(statsData);
       setVehicle(statsData.vehicle);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
@@ -109,7 +110,7 @@ export default function VehicleStatsPage() {
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
                 <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Rutas</p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
-                  {stats.totalRoutes || 0}
+                  {stats.statistics?.totalRoutes || stats.totalRoutes || 0}
                 </p>
               </div>
 
@@ -117,7 +118,7 @@ export default function VehicleStatsPage() {
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
                 <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Distancia</p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
-                  {(stats.totalDistancia || 0).toLocaleString()}
+                  {(stats.statistics?.totalDistancia || stats.totalDistancia || 0).toLocaleString()}
                   <span className="text-sm sm:text-xl text-gray-500 ml-1">km</span>
                 </p>
               </div>
@@ -126,7 +127,7 @@ export default function VehicleStatsPage() {
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
                 <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Promedio</p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
-                  {Number(stats.promedioDistanciaPorRuta || 0).toFixed(1)}
+                  {Number(stats.efficiency?.promedioDistanciaPorRuta || stats.promedioDistanciaPorRuta || 0).toFixed(1)}
                   <span className="text-sm sm:text-xl text-gray-500 ml-1">km</span>
                 </p>
               </div>
@@ -135,7 +136,7 @@ export default function VehicleStatsPage() {
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
                 <p className="text-xs sm:text-sm text-gray-500 mb-1 sm:mb-2">Recargas</p>
                 <p className="text-2xl sm:text-4xl font-light text-gray-900">
-                  {stats.totalRefuels || 0}
+                  {stats.statistics?.totalRefuels || stats.totalRefuels || 0}
                 </p>
               </div>
             </div>
@@ -146,7 +147,7 @@ export default function VehicleStatsPage() {
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
                 <p className="text-xs sm:text-sm text-gray-500 mb-2">Gasto en combustible</p>
                 <p className="text-2xl sm:text-3xl font-light text-gray-900">
-                  Q {(stats.totalGastoCombustible || 0).toFixed(2)}
+                  Q {(stats.costs?.combustible || stats.totalGastoCombustible || 0).toFixed(2)}
                 </p>
               </div>
 
@@ -193,23 +194,119 @@ export default function VehicleStatsPage() {
               </div>
             </div>
 
+            {/* Enhanced Stats - Cost Breakdown */}
+            {stats.costs && (
+              <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
+                <h3 className="text-base sm:text-lg font-medium mb-4 text-gray-900">
+                  Costos
+                </h3>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-1">Combustible</p>
+                    <p className="text-lg sm:text-xl font-semibold text-blue-600">
+                      ${stats.costs.combustible.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-1">Mantenimiento</p>
+                    <p className="text-lg sm:text-xl font-semibold text-orange-600">
+                      ${stats.costs.mantenimiento.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-1">Otros Gastos</p>
+                    <p className="text-lg sm:text-xl font-semibold text-purple-600">
+                      ${stats.costs.gastosOtros.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-1">Total</p>
+                    <p className="text-lg sm:text-xl font-semibold text-gray-900">
+                      ${stats.costs.total.toFixed(2)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Enhanced Stats - Efficiency Metrics */}
+            {stats.efficiency && (
+              <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-white">
+                <h3 className="text-base sm:text-lg font-medium mb-4 text-gray-900">
+                  Eficiencia
+                </h3>
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                  <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-1">km/Litro</p>
+                    <p className="text-lg sm:text-2xl font-semibold text-green-600">
+                      {stats.efficiency.kmPorLitro.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-1">km/Galón</p>
+                    <p className="text-lg sm:text-2xl font-semibold text-green-600">
+                      {stats.efficiency.kmPorGalon.toFixed(2)}
+                    </p>
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-1">Promedio/Ruta</p>
+                    <p className="text-lg sm:text-2xl font-semibold text-blue-600">
+                      {stats.efficiency.promedioDistanciaPorRuta.toFixed(1)}
+                      <span className="text-sm text-gray-500 ml-1">km</span>
+                    </p>
+                  </div>
+                  <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+                    <p className="text-xs text-gray-500 mb-1">Costo por km</p>
+                    <p className="text-lg sm:text-2xl font-semibold text-orange-600">
+                      ${stats.costs?.costoPorKm?.toFixed(3) || '0.000'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Total Cost of Ownership */}
+            {stats.totalCostOfOwnership !== undefined && (
+              <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-gradient-to-r from-gray-900 to-gray-800 text-white">
+                <h3 className="text-base sm:text-lg font-medium mb-2">
+                  Costo Total de Propiedad
+                </h3>
+                <p className="text-3xl sm:text-4xl font-bold">
+                  ${stats.totalCostOfOwnership.toFixed(2)}
+                </p>
+                {stats.totalDistancia && stats.totalDistancia > 0 && stats.totalCostOfOwnership > 0 && (
+                  <p className="text-sm text-gray-300 mt-2">
+                    Costo promedio: ${(stats.totalCostOfOwnership / stats.totalDistancia).toFixed(3)}/km
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Resumen */}
-            {stats.totalRoutes > 0 && (
+            {(stats.statistics?.totalRoutes || stats.totalRoutes || 0) > 0 && (
               <div className="border border-gray-200 rounded-lg p-4 sm:p-6 bg-gray-50">
                 <h3 className="text-base sm:text-lg font-medium mb-3 text-gray-900">
                   Resumen
                 </h3>
                 <div className="space-y-2 text-sm text-gray-700">
                   <p>
-                    Has registrado <span className="font-medium text-gray-900">{stats.totalRoutes}</span> rutas
-                    con un total de <span className="font-medium text-gray-900">{stats.totalDistancia} km</span> recorridos.
+                    Has registrado <span className="font-medium text-gray-900">{stats.statistics?.totalRoutes || stats.totalRoutes}</span> rutas
+                    con un total de <span className="font-medium text-gray-900">{stats.statistics?.totalDistancia || stats.totalDistancia} km</span> recorridos.
                   </p>
                   <p>
-                    Promedio de <span className="font-medium text-gray-900">{Number(stats.promedioDistanciaPorRuta).toFixed(1)} km</span> por ruta.
-                    {stats.totalRefuels > 0 && (
-                      <> Has realizado <span className="font-medium text-gray-900">{stats.totalRefuels}</span> recargas de combustible.</>
+                    Promedio de <span className="font-medium text-gray-900">{Number(stats.efficiency?.promedioDistanciaPorRuta || stats.promedioDistanciaPorRuta || 0).toFixed(1)} km</span> por ruta.
+                    {(stats.statistics?.totalRefuels || stats.totalRefuels || 0) > 0 && (
+                      <> Has realizado <span className="font-medium text-gray-900">{stats.statistics?.totalRefuels || stats.totalRefuels}</span> recargas de combustible.</>
                     )}
                   </p>
+                  {stats.statistics && (
+                    <p>
+                      Total de gastos registrados: <span className="font-medium text-gray-900">{stats.statistics.totalExpenses}</span>
+                      {stats.statistics.totalMaintenances > 0 && (
+                        <> (incluyendo <span className="font-medium text-gray-900">{stats.statistics.totalMaintenances}</span> de mantenimiento)</>
+                      )}
+                    </p>
+                  )}
                 </div>
               </div>
             )}
