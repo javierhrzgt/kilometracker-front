@@ -320,11 +320,6 @@ export default function MaintenanceHistory() {
                       <p className="text-lg font-semibold text-gray-900">
                         Q {maintenance.costo.toFixed(2)}
                       </p>
-                      {!maintenance.isActive && (
-                        <span className="inline-block mt-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
-                          Inactivo
-                        </span>
-                      )}
                     </div>
                     <div className="flex gap-2">
                       <button

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { UpcomingMaintenance } from "@/Types";
-import { formatDateForDisplayForDisplay, getDaysUntilDateDate } from "@/lib/dateUtils";
+import { formatDateForDisplay, getDaysUntilDate } from "@/lib/dateUtils";
 
 export default function UpcomingMaintenancePage() {
   const [upcomingMaintenances, setUpcomingMaintenances] = useState<UpcomingMaintenance[]>([]);
