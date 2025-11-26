@@ -202,7 +202,7 @@ export default function ExpensesSummary() {
           <div className="border border-gray-200 rounded-lg p-6 bg-white">
             <p className="text-sm text-gray-500 mb-1">Total Gastado</p>
             <p className="text-3xl font-semibold text-gray-900">
-              ${totalMonto.toFixed(2)}
+              Q {totalMonto.toFixed(2)}
             </p>
           </div>
           <div className="border border-gray-200 rounded-lg p-6 bg-white">
@@ -239,7 +239,7 @@ export default function ExpensesSummary() {
                             {item._id}
                           </p>
                           <p className="text-lg font-semibold text-gray-900">
-                            ${item.totalMonto.toFixed(2)}
+                            Q {item.totalMonto.toFixed(2)}
                           </p>
                         </div>
                         <p className="text-xs text-gray-500">
@@ -320,10 +320,10 @@ export default function ExpensesSummary() {
                           {item.cantidad}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                          ${item.totalMonto.toFixed(2)}
+                          Q {item.totalMonto.toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                          ${(item.totalMonto / item.cantidad).toFixed(2)}
+                          Q {(item.totalMonto / item.cantidad).toFixed(2)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                           {percentage.toFixed(2)}%

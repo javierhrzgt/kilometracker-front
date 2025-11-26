@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// GET /api/expenses - List all expenses with filters
+// GET /api/expenses - List all expenses (no soft delete, all records are active)
 export async function GET(request) {
   try {
     const cookieStore = await cookies();
@@ -21,7 +21,7 @@ export async function GET(request) {
     const startDate = searchParams.get('startDate');
     const endDate = searchParams.get('endDate');
     const esDeducibleImpuestos = searchParams.get('esDeducibleImpuestos');
-    const isActive = searchParams.get('isActive');
+    // Removed isActive - expenses now use permanent delete
 
     // Build URL with params
     const params = new URLSearchParams();
@@ -30,7 +30,7 @@ export async function GET(request) {
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
     if (esDeducibleImpuestos !== null) params.append('esDeducibleImpuestos', esDeducibleImpuestos);
-    if (isActive !== null) params.append('isActive', isActive);
+    // isActive filter removed as expenses use permanent delete
 
     const url = `${process.env.API_BASE_URL}/api/expenses${params.toString() ? '?' + params.toString() : ''}`;
 

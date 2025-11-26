@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Expense, Vehicle, ExpenseFilters } from "@/Types";
 import { useRouter } from "next/navigation";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 
 const EXPENSE_CATEGORIES = [
   "Seguro",
@@ -110,6 +111,12 @@ export default function ExpensesHistory() {
   };
 
   const handleDelete = async (id: string) => {
+    // Additional confirmation for permanent delete
+    if (!confirm("⚠️ ADVERTENCIA: Esta acción eliminará permanentemente este gasto y no se puede deshacer. ¿Estás seguro?")) {
+      setDeleteConfirm(null);
+      return;
+    }
+
     try {
       const response = await fetch(`/api/expenses/${id}`, {
         method: "DELETE",
@@ -282,13 +289,13 @@ export default function ExpensesHistory() {
           <div className="border border-gray-200 rounded-lg p-4 bg-white">
             <p className="text-sm text-gray-500 mb-1">Total Gastos</p>
             <p className="text-2xl font-semibold text-gray-900">
-              ${totalMonto.toFixed(2)}
+              Q {totalMonto.toFixed(2)}
             </p>
           </div>
           <div className="border border-gray-200 rounded-lg p-4 bg-white">
             <p className="text-sm text-gray-500 mb-1">Deducibles</p>
             <p className="text-2xl font-semibold text-green-600">
-              ${taxDeductibleTotal.toFixed(2)}
+              Q {taxDeductibleTotal.toFixed(2)}
             </p>
           </div>
           <div className="border border-gray-200 rounded-lg p-4 bg-white">
@@ -337,7 +344,7 @@ export default function ExpensesHistory() {
                   {expenses.map((expense) => (
                     <tr key={expense._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(expense.fecha).toLocaleDateString("es-ES")}
+                        {formatDateForDisplay(expense.fecha)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {expense.vehicleAlias}
@@ -349,7 +356,7 @@ export default function ExpensesHistory() {
                         {expense.descripcion}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                        ${expense.monto.toFixed(2)}
+                        Q {expense.monto.toFixed(2)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <div className="flex flex-col gap-1">
@@ -382,12 +389,20 @@ export default function ExpensesHistory() {
                             </button>
                           </div>
                         ) : (
-                          <button
-                            onClick={() => setDeleteConfirm(expense._id)}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            Eliminar
-                          </button>
+                          <div className="flex justify-end gap-3">
+                            <button
+                              onClick={() => router.push(`/edit-expense/${expense._id}`)}
+                              className="text-gray-600 hover:text-gray-900"
+                            >
+                              Editar
+                            </button>
+                            <button
+                              onClick={() => setDeleteConfirm(expense._id)}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              Eliminar
+                            </button>
+                          </div>
                         )}
                       </td>
                     </tr>

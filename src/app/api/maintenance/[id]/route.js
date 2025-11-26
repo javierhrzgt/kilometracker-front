@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 
-// GET /api/expenses/:id - Get expense by ID
+// GET /api/maintenance/:id - Get maintenance by ID
 export async function GET(request, { params }) {
   try {
     const cookieStore = await cookies();
@@ -16,9 +16,9 @@ export async function GET(request, { params }) {
 
     const { id } = await params;
 
-    console.log('Obteniendo gasto:', id);
+    console.log('Obteniendo mantenimiento:', id);
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/expenses/${id}`, {
+    const response = await fetch(`${process.env.API_BASE_URL}/api/maintenance/${id}`, {
       headers: {
         'Authorization': `Bearer ${token}`,
       },
@@ -27,7 +27,7 @@ export async function GET(request, { params }) {
     if (!response.ok) {
       const data = await response.json();
       return NextResponse.json(
-        { error: data.message || 'Error al obtener gasto' },
+        { error: data.error || 'Error al obtener mantenimiento' },
         { status: response.status }
       );
     }
@@ -36,15 +36,15 @@ export async function GET(request, { params }) {
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error('Error en GET expense:', error);
+    console.error('Error en GET maintenance:', error);
     return NextResponse.json(
-      { error: 'Error al obtener gasto: ' + error.message },
+      { error: 'Error al obtener mantenimiento: ' + error.message },
       { status: 500 }
     );
   }
 }
 
-// PUT /api/expenses/:id - Update expense
+// PUT /api/maintenance/:id - Update maintenance record
 export async function PUT(request, { params }) {
   try {
     const cookieStore = await cookies();
@@ -60,9 +60,9 @@ export async function PUT(request, { params }) {
     const { id } = await params;
     const body = await request.json();
 
-    console.log('Actualizando gasto:', id);
+    console.log('Actualizando mantenimiento:', id, body);
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/expenses/${id}`, {
+    const response = await fetch(`${process.env.API_BASE_URL}/api/maintenance/${id}`, {
       method: 'PUT',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -75,25 +75,25 @@ export async function PUT(request, { params }) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: data.message || 'Error al actualizar gasto' },
+        { error: data.error || 'Error al actualizar mantenimiento' },
         { status: response.status }
       );
     }
 
-    console.log('Gasto actualizado exitosamente');
+    console.log('Mantenimiento actualizado exitosamente');
 
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error('Error en PUT expense:', error);
+    console.error('Error en PUT maintenance:', error);
     return NextResponse.json(
-      { error: 'Error al actualizar gasto: ' + error.message },
+      { error: 'Error al actualizar mantenimiento: ' + error.message },
       { status: 500 }
     );
   }
 }
 
-// DELETE /api/expenses/:id - Delete expense (PERMANENT DELETE - cannot be undone)
+// DELETE /api/maintenance/:id - Delete maintenance (PERMANENT DELETE - cannot be undone)
 export async function DELETE(request, { params }) {
   try {
     const cookieStore = await cookies();
@@ -108,32 +108,32 @@ export async function DELETE(request, { params }) {
 
     const { id } = await params;
 
-    console.log('Eliminando gasto:', id);
+    console.log('Eliminando mantenimiento:', id);
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/expenses/${id}`, {
+    const response = await fetch(`${process.env.API_BASE_URL}/api/maintenance/${id}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
       },
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const data = await response.json();
       return NextResponse.json(
-        { error: data.message || 'Error al eliminar gasto' },
+        { error: data.error || 'Error al eliminar mantenimiento' },
         { status: response.status }
       );
     }
 
-    const data = await response.json();
-    console.log('Gasto eliminado exitosamente');
+    console.log('Mantenimiento eliminado exitosamente');
 
     return NextResponse.json(data);
 
   } catch (error) {
-    console.error('Error en DELETE expense:', error);
+    console.error('Error en DELETE maintenance:', error);
     return NextResponse.json(
-      { error: 'Error al eliminar gasto: ' + error.message },
+      { error: 'Error al eliminar mantenimiento: ' + error.message },
       { status: 500 }
     );
   }

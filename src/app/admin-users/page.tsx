@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { User } from "@/Types";
 import { useRouter } from "next/navigation";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 
 export default function AdminUsers() {
   const [users, setUsers] = useState<User[]>([]);
@@ -317,7 +318,7 @@ export default function AdminUsers() {
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-                        {new Date(user.createdAt).toLocaleDateString("es-ES")}
+                        {formatDateForDisplay(user.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                         {user._id !== currentUser._id && (

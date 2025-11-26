@@ -2,41 +2,36 @@
 
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { AddExpenseFormData, Vehicle } from "@/Types";
+import { AddMaintenanceFormData, Vehicle } from "@/Types";
 import { getTodayDateString } from "@/lib/dateUtils";
 
-const EXPENSE_CATEGORIES = [
-  { value: "Seguro", label: "Seguro" },
-  { value: "Impuestos", label: "Impuestos" },
-  { value: "Registro", label: "Registro" },
-  { value: "Estacionamiento", label: "Estacionamiento" },
-  { value: "Peajes", label: "Peajes" },
-  { value: "Lavado", label: "Lavado" },
-  { value: "Multas", label: "Multas" },
-  { value: "Financiamiento", label: "Financiamiento" },
+const MAINTENANCE_TYPES = [
+  { value: "Cambio de aceite", label: "Cambio de aceite" },
+  { value: "Rotación de llantas", label: "Rotación de llantas" },
+  { value: "Frenos", label: "Frenos" },
+  { value: "Inspección", label: "Inspección" },
+  { value: "Reparación", label: "Reparación" },
+  { value: "Batería", label: "Batería" },
+  { value: "Filtros", label: "Filtros" },
+  { value: "Transmisión", label: "Transmisión" },
+  { value: "Suspensión", label: "Suspensión" },
+  { value: "Alineación", label: "Alineación" },
   { value: "Otro", label: "Otro" },
 ];
 
-const RECURRING_FREQUENCIES = [
-  { value: "", label: "No recurrente" },
-  { value: "Mensual", label: "Mensual" },
-  { value: "Trimestral", label: "Trimestral" },
-  { value: "Semestral", label: "Semestral" },
-  { value: "Anual", label: "Anual" },
-];
-
-export default function AddExpense() {
+export default function AddMaintenance() {
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [formData, setFormData] = useState<AddExpenseFormData>({
+  const [formData, setFormData] = useState<AddMaintenanceFormData>({
     vehicleAlias: "",
-    categoria: "",
-    monto: "",
+    tipo: "",
     descripcion: "",
+    costo: "",
     fecha: getTodayDateString(),
-    esRecurrente: false,
-    frecuenciaRecurrencia: "",
-    proximoPago: "",
-    esDeducibleImpuestos: false,
+    kilometraje: "",
+    proveedor: "",
+    proximoServicioFecha: "",
+    proximoServicioKm: "",
+    notas: "",
   });
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingVehicles, setLoadingVehicles] = useState<boolean>(true);
@@ -73,22 +68,11 @@ export default function AddExpense() {
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
-
+    const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }));
-
-    // Reset recurring fields if esRecurrente is unchecked
-    if (name === "esRecurrente" && !checked) {
-      setFormData((prev) => ({
-        ...prev,
-        frecuenciaRecurrencia: "",
-        proximoPago: "",
-      }));
-    }
   };
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
@@ -100,21 +84,28 @@ export default function AddExpense() {
       // Prepare payload
       const payload: any = {
         vehicleAlias: formData.vehicleAlias,
-        categoria: formData.categoria,
-        monto: parseFloat(formData.monto),
+        tipo: formData.tipo,
         descripcion: formData.descripcion,
+        costo: parseFloat(formData.costo),
         fecha: formData.fecha,
-        esRecurrente: formData.esRecurrente,
-        esDeducibleImpuestos: formData.esDeducibleImpuestos,
+        kilometraje: parseFloat(formData.kilometraje),
       };
 
-      // Add recurring fields if applicable
-      if (formData.esRecurrente) {
-        payload.frecuenciaRecurrencia = formData.frecuenciaRecurrencia;
-        payload.proximoPago = formData.proximoPago;
+      // Add optional fields
+      if (formData.proveedor) {
+        payload.proveedor = formData.proveedor;
+      }
+      if (formData.proximoServicioFecha) {
+        payload.proximoServicioFecha = formData.proximoServicioFecha;
+      }
+      if (formData.proximoServicioKm) {
+        payload.proximoServicioKm = parseFloat(formData.proximoServicioKm);
+      }
+      if (formData.notas) {
+        payload.notas = formData.notas;
       }
 
-      const response = await fetch("/api/expenses", {
+      const response = await fetch("/api/maintenance", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -126,10 +117,10 @@ export default function AddExpense() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al crear el gasto");
+        throw new Error(data.error || "Error al crear el mantenimiento");
       }
 
-      router.push("/expenses-history");
+      router.push("/maintenance-history");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
@@ -158,7 +149,7 @@ export default function AddExpense() {
               ← Volver
             </button>
             <h1 className="text-xl sm:text-2xl font-light text-gray-900">
-              Agregar Gasto
+              Agregar Mantenimiento
             </h1>
           </div>
         </div>
@@ -214,73 +205,30 @@ export default function AddExpense() {
                 </select>
               </div>
 
-              {/* Category */}
+              {/* Maintenance Type */}
               <div>
                 <label
-                  htmlFor="categoria"
+                  htmlFor="tipo"
                   className="block text-sm font-medium text-gray-700 mb-2"
                 >
-                  Categoría *
+                  Tipo de mantenimiento *
                 </label>
                 <select
-                  id="categoria"
-                  name="categoria"
-                  value={formData.categoria}
+                  id="tipo"
+                  name="tipo"
+                  value={formData.tipo}
                   onChange={handleChange}
                   required
                   disabled={loading}
                   className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
                 >
-                  <option value="">Seleccionar categoría</option>
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <option key={cat.value} value={cat.value}>
-                      {cat.label}
+                  <option value="">Seleccionar tipo</option>
+                  {MAINTENANCE_TYPES.map((type) => (
+                    <option key={type.value} value={type.value}>
+                      {type.label}
                     </option>
                   ))}
                 </select>
-              </div>
-
-              {/* Amount */}
-              <div>
-                <label
-                  htmlFor="monto"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Monto *
-                </label>
-                <input
-                  id="monto"
-                  name="monto"
-                  type="number"
-                  step="0.01"
-                  min="0"
-                  value={formData.monto}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                  placeholder="0.00"
-                  className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
-                />
-              </div>
-
-              {/* Date */}
-              <div>
-                <label
-                  htmlFor="fecha"
-                  className="block text-sm font-medium text-gray-700 mb-2"
-                >
-                  Fecha *
-                </label>
-                <input
-                  id="fecha"
-                  name="fecha"
-                  type="date"
-                  value={formData.fecha}
-                  onChange={handleChange}
-                  required
-                  disabled={loading}
-                  className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
-                />
               </div>
 
               {/* Description */}
@@ -299,92 +247,164 @@ export default function AddExpense() {
                   required
                   disabled={loading}
                   rows={3}
-                  placeholder="Detalles del gasto..."
+                  placeholder="Detalles del mantenimiento..."
                   className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
                 />
               </div>
 
-              {/* Tax Deductible Checkbox */}
+              {/* Cost */}
               <div>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    name="esDeducibleImpuestos"
-                    checked={formData.esDeducibleImpuestos}
-                    onChange={handleChange}
-                    disabled={loading}
-                    className="w-4 h-4 border-gray-300 rounded text-gray-900 focus:ring-2 focus:ring-gray-900"
-                  />
-                  <span className="text-sm text-gray-700">
-                    Deducible de impuestos
-                  </span>
+                <label
+                  htmlFor="costo"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Costo *
                 </label>
+                <input
+                  id="costo"
+                  name="costo"
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  value={formData.costo}
+                  onChange={handleChange}
+                  required
+                  disabled={loading}
+                  placeholder="0.00"
+                  className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+                />
               </div>
 
-              {/* Recurring Checkbox */}
-              <div>
-                <label className="flex items-center gap-2 cursor-pointer">
+              {/* Date and Kilometraje in a row */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label
+                    htmlFor="fecha"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Fecha *
+                  </label>
                   <input
-                    type="checkbox"
-                    name="esRecurrente"
-                    checked={formData.esRecurrente}
+                    id="fecha"
+                    name="fecha"
+                    type="date"
+                    value={formData.fecha}
                     onChange={handleChange}
+                    required
                     disabled={loading}
-                    className="w-4 h-4 border-gray-300 rounded text-gray-900 focus:ring-2 focus:ring-gray-900"
+                    className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
                   />
-                  <span className="text-sm text-gray-700">
-                    Gasto recurrente
-                  </span>
-                </label>
+                </div>
+
+                <div>
+                  <label
+                    htmlFor="kilometraje"
+                    className="block text-sm font-medium text-gray-700 mb-2"
+                  >
+                    Kilometraje *
+                  </label>
+                  <input
+                    id="kilometraje"
+                    name="kilometraje"
+                    type="number"
+                    step="0.1"
+                    min="0"
+                    value={formData.kilometraje}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                    placeholder="15000"
+                    className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+                  />
+                </div>
               </div>
 
-              {/* Recurring Options */}
-              {formData.esRecurrente && (
-                <div className="pl-6 border-l-2 border-gray-200 space-y-4">
-                  <div>
-                    <label
-                      htmlFor="frecuenciaRecurrencia"
-                      className="block text-sm font-medium text-gray-700 mb-2"
-                    >
-                      Frecuencia *
-                    </label>
-                    <select
-                      id="frecuenciaRecurrencia"
-                      name="frecuenciaRecurrencia"
-                      value={formData.frecuenciaRecurrencia}
-                      onChange={handleChange}
-                      required={formData.esRecurrente}
-                      disabled={loading}
-                      className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
-                    >
-                      {RECURRING_FREQUENCIES.slice(1).map((freq) => (
-                        <option key={freq.value} value={freq.value}>
-                          {freq.label}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+              {/* Provider */}
+              <div>
+                <label
+                  htmlFor="proveedor"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Proveedor / Taller
+                </label>
+                <input
+                  id="proveedor"
+                  name="proveedor"
+                  type="text"
+                  value={formData.proveedor}
+                  onChange={handleChange}
+                  disabled={loading}
+                  placeholder="Nombre del taller o proveedor"
+                  className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+                />
+              </div>
 
+              {/* Next Service Section */}
+              <div className="border-t border-gray-200 pt-6">
+                <h3 className="text-base font-medium text-gray-900 mb-4">
+                  Próximo Servicio (Opcional)
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label
-                      htmlFor="proximoPago"
+                      htmlFor="proximoServicioFecha"
                       className="block text-sm font-medium text-gray-700 mb-2"
                     >
-                      Próxima fecha de pago *
+                      Fecha del próximo servicio
                     </label>
                     <input
-                      id="proximoPago"
-                      name="proximoPago"
+                      id="proximoServicioFecha"
+                      name="proximoServicioFecha"
                       type="date"
-                      value={formData.proximoPago}
+                      value={formData.proximoServicioFecha}
                       onChange={handleChange}
-                      required={formData.esRecurrente}
                       disabled={loading}
                       className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
                     />
                   </div>
+
+                  <div>
+                    <label
+                      htmlFor="proximoServicioKm"
+                      className="block text-sm font-medium text-gray-700 mb-2"
+                    >
+                      Kilometraje próximo servicio
+                    </label>
+                    <input
+                      id="proximoServicioKm"
+                      name="proximoServicioKm"
+                      type="number"
+                      step="0.1"
+                      min="0"
+                      value={formData.proximoServicioKm}
+                      onChange={handleChange}
+                      disabled={loading}
+                      placeholder="20000"
+                      className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+                    />
+                  </div>
                 </div>
-              )}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <label
+                  htmlFor="notas"
+                  className="block text-sm font-medium text-gray-700 mb-2"
+                >
+                  Notas adicionales
+                </label>
+                <textarea
+                  id="notas"
+                  name="notas"
+                  value={formData.notas}
+                  onChange={handleChange}
+                  disabled={loading}
+                  rows={3}
+                  placeholder="Información adicional..."
+                  className="w-full border border-gray-300 rounded p-3 text-gray-900 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
+                />
+              </div>
 
               {/* Submit Button */}
               <div className="pt-4">
@@ -393,7 +413,7 @@ export default function AddExpense() {
                   disabled={loading}
                   className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Guardando..." : "Guardar Gasto"}
+                  {loading ? "Guardando..." : "Guardar Mantenimiento"}
                 </button>
               </div>
             </form>

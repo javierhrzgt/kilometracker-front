@@ -138,6 +138,24 @@ export default function Dashboard() {
                 Recargas
               </button>
               <button
+                onClick={() => router.push("/add-maintenance")}
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+              >
+                + Mantenimiento
+              </button>
+              <button
+                onClick={() => router.push("/maintenance-history")}
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+              >
+                Mantenimientos
+              </button>
+              <button
+                onClick={() => router.push("/upcoming-maintenance")}
+                className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+              >
+                Mant. Próximos
+              </button>
+              <button
                 onClick={() => router.push("/add-expense")}
                 className="px-4 py-2 text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
               >
@@ -255,6 +273,33 @@ export default function Dashboard() {
                   className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
                 >
                   Ver Historial de Recargas
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/add-maintenance");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+                >
+                  + Agregar Mantenimiento
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/maintenance-history");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+                >
+                  Ver Historial de Mantenimientos
+                </button>
+                <button
+                  onClick={() => {
+                    router.push("/upcoming-maintenance");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full px-4 py-3 text-left text-sm border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors rounded"
+                >
+                  Mantenimientos Próximos
                 </button>
                 <button
                   onClick={() => {

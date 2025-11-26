@@ -8,10 +8,12 @@ Kilometracker v2 is a Next.js 16 application for comprehensive vehicle managemen
 - Register and manage multiple vehicles
 - Track routes/trips and mileage
 - Monitor fuel consumption and efficiency
-- Manage vehicle expenses (insurance, taxes, maintenance, etc.)
+- Manage vehicle maintenance records (oil changes, repairs, inspections, etc.)
+- Manage vehicle expenses (insurance, taxes, parking, etc.)
 - Analyze fuel efficiency metrics (km/liter, km/gallon, cost per km)
 - Track total cost of ownership
 - Manage recurring expenses and tax-deductible items
+- Schedule and track upcoming maintenance
 - Admin users can manage user accounts and permissions
 
 ## Commands
@@ -57,6 +59,9 @@ src/
 │   ├── add-refuel/               # Log fuel refill
 │   ├── routes-history/           # View all routes
 │   ├── refuels-history/          # View all refuels
+│   ├── add-maintenance/          # Add maintenance record
+│   ├── maintenance-history/      # View and filter maintenance records
+│   ├── upcoming-maintenance/     # View upcoming/overdue maintenance
 │   ├── add-expense/              # Add new expense form
 │   ├── expenses-history/         # View and filter all expenses
 │   ├── expenses-summary/         # Expense dashboard with category breakdown
@@ -80,9 +85,14 @@ src/
 │       ├── vehicles/             # Vehicle CRUD operations + stats + fuel efficiency
 │       │   └── [alias]/
 │       │       ├── stats/        # Comprehensive vehicle statistics
-│       │       └── fuel-efficiency/  # Fuel efficiency metrics
+│       │       ├── fuel-efficiency/  # Fuel efficiency metrics
+│       │       └── reactivate/   # Reactivate deactivated vehicle
 │       ├── routes/               # Route tracking endpoints
 │       ├── refuels/              # Refuel tracking endpoints
+│       ├── maintenance/          # Maintenance tracking endpoints
+│       │   ├── route.js          # List/Create maintenance (GET/POST)
+│       │   ├── [id]/             # Get/Update/Delete maintenance
+│       │   └── upcoming/         # Maintenance due soon
 │       └── expenses/             # Expense management endpoints
 │           ├── route.js          # List/Create expenses (GET/POST)
 │           ├── [id]/             # Get/Update/Delete expense
@@ -114,9 +124,9 @@ Vehicles are identified by `alias` (unique string) rather than database ID in UR
 
 **4. Type Safety**
 All entity types are defined in `src/Types.ts`:
-- Core entities: `Vehicle`, `Route`, `Refuel`, `User`
-- Analytics: `VehicleStats`, `FuelAnalysis`
-- Form data types: `AddVehicleFormData`, `EditVehicleFormData`, etc.
+- Core entities: `Vehicle`, `Route`, `Refuel`, `Maintenance`, `Expense`, `User`
+- Analytics: `VehicleStats`, `FuelAnalysis`, `ExpenseSummary`
+- Form data types: `AddVehicleFormData`, `EditVehicleFormData`, `AddMaintenanceFormData`, etc.
 - All form data types use strings for numeric fields (converted before API submission)
 
 **5. Client Components**
@@ -139,44 +149,58 @@ These endpoints require `admin` role:
 - `GET /api/auth/users` - List all users (supports `?isActive=true/false` filter)
 - `GET /api/auth/users/:id` - View specific user details
 - `PUT /api/auth/users/:id/role` - Update user role (`read`, `write`, `admin`)
-- `DELETE /api/auth/users/:id` - Deactivate user (soft delete, cannot deactivate self)
+- `DELETE /api/auth/users/:id` - **Deactivate user (soft delete - sets isActive to false, cannot deactivate self)**
 - `PATCH /api/auth/users/:id/reactivate` - Reactivate deactivated user
 
 ### Vehicles
-- `GET /api/vehicles` - List all vehicles (supports `?isActive` and `?includeInactive` params)
+- `GET /api/vehicles` - List all vehicles (supports `?isActive` param)
 - `POST /api/vehicles` - Create new vehicle
 - `GET /api/vehicles/:alias` - Get vehicle by alias
 - `PUT /api/vehicles/:alias` - Update vehicle
-- `DELETE /api/vehicles/:alias` - Delete vehicle
+- `DELETE /api/vehicles/:alias` - **Deactivate vehicle (soft delete - sets isActive to false)**
 - `GET /api/vehicles/:alias/stats` - Comprehensive vehicle statistics (routes, refuels, maintenance, expenses, efficiency metrics, total cost of ownership, cost per km)
 - `GET /api/vehicles/:alias/fuel-efficiency` - Calculate fuel efficiency (km/liter, km/gallon, cost per km). Supports `?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD`
+- `PATCH /api/vehicles/:alias/reactivate` - Reactivate deactivated vehicle
 
 ### Routes (Trips)
 - `GET /api/routes` - List all routes
 - `POST /api/routes` - Create new route
 - `GET /api/routes/:id` - Get route by ID
 - `PUT /api/routes/:id` - Update route
-- `DELETE /api/routes/:id` - Delete route
+- `DELETE /api/routes/:id` - **Delete route (PERMANENT DELETE - cannot be undone)**
 
 ### Refuels
 - `GET /api/refuels` - List all refuels
 - `POST /api/refuels` - Create new refuel record
 - `GET /api/refuels/:id` - Get refuel by ID
 - `PUT /api/refuels/:id` - Update refuel
-- `DELETE /api/refuels/:id` - Delete refuel
+- `DELETE /api/refuels/:id` - **Delete refuel (PERMANENT DELETE - cannot be undone)**
 - `GET /api/refuels/vehicle/:alias/analysis` - Get fuel analysis for specific vehicle
+
+### Maintenance
+- `GET /api/maintenance` - List all maintenance records (supports filters: `?vehicleAlias`, `?tipo`, `?startDate`, `?endDate`)
+- `POST /api/maintenance` - Create new maintenance record
+- `GET /api/maintenance/:id` - Get maintenance by ID
+- `PUT /api/maintenance/:id` - Update maintenance
+- `DELETE /api/maintenance/:id` - **Delete maintenance (PERMANENT DELETE - cannot be undone)**
+- `GET /api/maintenance/upcoming` - Maintenance due soon (by date or km)
+
+**Maintenance Types**: Cambio de aceite, Rotación de llantas, Frenos, Inspección, Reparación, Batería, Filtros, Transmisión, Suspensión, Alineación, Otro
+**Maintenance Features**: Track by date and/or kilometraje, schedule next service, provider tracking
+**Important**: Maintenance uses permanent delete (no soft delete)
 
 ### Expenses
 - `GET /api/expenses` - List all expenses (supports filters: `?vehicleAlias`, `?category`, `?startDate`, `?endDate`, `?taxDeductible=true/false`)
 - `POST /api/expenses` - Create new expense
 - `GET /api/expenses/:id` - Get expense by ID
 - `PUT /api/expenses/:id` - Update expense
-- `DELETE /api/expenses/:id` - Delete expense (soft delete)
+- `DELETE /api/expenses/:id` - **Delete expense (PERMANENT DELETE - cannot be undone)**
 - `GET /api/expenses/summary` - Aggregated spending by category
 - `GET /api/expenses/upcoming` - Recurring expenses due in next 30 days
 
-**Expense Categories**: insurance, taxes, registration, parking, tolls, fines, maintenance, repairs, other
-**Expense Features**: Recurring expenses (monthly, quarterly, annual), tax-deductible tracking, next payment date
+**Expense Categories**: Seguro, Impuestos, Registro, Estacionamiento, Peajes, Lavado, Multas, Financiamiento, Otro
+**Expense Features**: Recurring expenses (Mensual, Trimestral, Semestral, Anual), tax-deductible tracking, next payment date
+**Important**: Expenses use permanent delete (no soft delete)
 
 ## Configuration
 
@@ -194,3 +218,17 @@ Uses Next.js recommended config with TypeScript support (`eslint.config.mjs`)
 
 ### React Compiler
 Enabled in `next.config.ts` with `reactCompiler: true`
+
+## Important Enums and Constants
+
+### Fuel Types (tipoCombustible)
+Supported fuel types: `Regular`, `Premium`, `Diesel`, `Eléctrico`, `Híbrido`, `V-Power`
+
+### Maintenance Types (tipo)
+Supported types: `Cambio de aceite`, `Rotación de llantas`, `Frenos`, `Inspección`, `Reparación`, `Batería`, `Filtros`, `Transmisión`, `Suspensión`, `Alineación`, `Otro`
+
+### Expense Categories (categoria)
+Supported categories: `Seguro`, `Impuestos`, `Registro`, `Estacionamiento`, `Peajes`, `Lavado`, `Multas`, `Financiamiento`, `Otro`
+
+### Recurrence Frequencies (frecuenciaRecurrencia)
+Supported frequencies: `Mensual`, `Trimestral`, `Semestral`, `Anual`

@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { UpcomingExpense, Vehicle } from "@/Types";
 import { useRouter } from "next/navigation";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 
 export default function UpcomingExpenses() {
   const [upcomingExpenses, setUpcomingExpenses] = useState<UpcomingExpense[]>([]);
@@ -184,7 +185,7 @@ export default function UpcomingExpenses() {
             <div>
               <p className="text-sm text-gray-500 mb-1">Total de Gastos Próximos</p>
               <p className="text-3xl font-semibold text-gray-900">
-                ${totalUpcoming.toFixed(2)}
+                Q {totalUpcoming.toFixed(2)}
               </p>
             </div>
             <div>
@@ -254,9 +255,7 @@ export default function UpcomingExpenses() {
                         <div>
                           <p className="text-gray-500 mb-1">Fecha de Pago</p>
                           <p className="text-gray-900 font-medium">
-                            {new Date(expense.proximoPago).toLocaleDateString(
-                              "es-ES"
-                            )}
+                            {formatDateForDisplay(expense.proximoPago)}
                           </p>
                         </div>
                       </div>
@@ -264,7 +263,7 @@ export default function UpcomingExpenses() {
                     <div className="ml-6 text-right">
                       <p className="text-sm text-gray-500 mb-1">Monto</p>
                       <p className="text-2xl font-semibold text-gray-900">
-                        ${expense.monto.toFixed(2)}
+                        Q {expense.monto.toFixed(2)}
                       </p>
                     </div>
                   </div>

@@ -3,6 +3,7 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { Route, Vehicle } from "@/Types";
+import { formatDateForDisplay, getDateValue } from "@/lib/dateUtils";
 
 export default function RoutesHistory() {
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -18,39 +19,6 @@ export default function RoutesHistory() {
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const router = useRouter();
-
-  // Función helper para formatear fechas correctamente
-  const formatDate = (dateString: string) => {
-    try {
-      if (!dateString) return "Sin fecha";
-      
-      const dateOnly = dateString.split('T')[0];
-      const [year, month, day] = dateOnly.split('-').map(Number);
-      const date = new Date(year, month - 1, day);
-      
-      if (isNaN(date.getTime())) {
-        return "Fecha inválida";
-      }
-      
-      return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch (error) {
-      console.error("Error formateando fecha:", dateString, error);
-      return "Fecha inválida";
-    }
-  };
-
-  const getDateValue = (dateString: string) => {
-    try {
-      const dateOnly = dateString.split('T')[0];
-      return dateOnly;
-    } catch (error) {
-      return "";
-    }
-  };
 
   useEffect(() => {
     fetchVehicles();
@@ -369,7 +337,7 @@ export default function RoutesHistory() {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium text-gray-900 truncate">{route.vehicleAlias}</h3>
-                        <p className="text-sm text-gray-500">{formatDate(route.fecha)}</p>
+                        <p className="text-sm text-gray-500">{formatDateForDisplay(route.fecha)}</p>
                       </div>
                       <div className="flex gap-2">
                         <button
