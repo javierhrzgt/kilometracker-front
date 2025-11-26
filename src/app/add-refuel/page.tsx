@@ -2,6 +2,7 @@
 
 import { useState, useEffect, ChangeEvent, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getTodayDateString } from "@/lib/dateUtils";
 
 interface Vehicle {
   _id: string;
@@ -27,7 +28,7 @@ function AddRefuelForm({ vehicleFromUrl }: { vehicleFromUrl: string | null }) {
     tipoCombustible: "Regular",
     cantidadGastada: "",
     galones: "",
-    fecha: new Date().toISOString().split("T")[0],
+    fecha: getTodayDateString(),
     notasAdicionales: "",
   });
   const [loading, setLoading] = useState(false);

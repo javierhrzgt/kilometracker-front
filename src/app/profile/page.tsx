@@ -3,6 +3,7 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { User, ProfileFormData, PasswordChangeFormData } from "@/Types";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 
 export default function Profile() {
   const [user, setUser] = useState<User | null>(null);
@@ -213,11 +214,11 @@ export default function Profile() {
             </div>
             <div>
               <p className="text-gray-500 mb-1">Cuenta creada</p>
-              <p className="text-gray-900">{user?.createdAt ? new Date(user.createdAt).toLocaleDateString('es-ES') : '—'}</p>
+              <p className="text-gray-900">{user?.createdAt ? formatDateForDisplay(user.createdAt) : '—'}</p>
             </div>
             <div>
               <p className="text-gray-500 mb-1">Última actualización</p>
-              <p className="text-gray-900">{user?.updatedAt ? new Date(user.updatedAt).toLocaleDateString('es-ES') : '—'}</p>
+              <p className="text-gray-900">{user?.updatedAt ? formatDateForDisplay(user.updatedAt) : '—'}</p>
             </div>
           </div>
         </div>

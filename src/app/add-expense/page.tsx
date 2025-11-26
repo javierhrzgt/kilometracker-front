@@ -3,6 +3,7 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AddExpenseFormData, Vehicle } from "@/Types";
+import { getTodayDateString } from "@/lib/dateUtils";
 
 const EXPENSE_CATEGORIES = [
   { value: "Seguro", label: "Seguro" },
@@ -31,7 +32,7 @@ export default function AddExpense() {
     categoria: "",
     monto: "",
     descripcion: "",
-    fecha: new Date().toISOString().split("T")[0],
+    fecha: getTodayDateString(),
     esRecurrente: false,
     frecuenciaRecurrencia: "",
     proximoPago: "",

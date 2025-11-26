@@ -3,6 +3,7 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Maintenance, Vehicle, MaintenanceFilters } from "@/Types";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 
 const MAINTENANCE_TYPES = [
   "Cambio de aceite",
@@ -128,14 +129,6 @@ export default function MaintenanceHistory() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    });
   };
 
   const totalCost = maintenances.reduce((sum, m) => sum + m.costo, 0);
@@ -302,7 +295,7 @@ export default function MaintenanceHistory() {
                           <span>
                             Vehículo: {maintenance.vehicle?.alias || maintenance.vehicleAlias}
                           </span>
-                          <span>Fecha: {formatDate(maintenance.fecha)}</span>
+                          <span>Fecha: {formatDateForDisplay(maintenance.fecha)}</span>
                           <span>Kilometraje: {maintenance.kilometraje.toLocaleString()} km</span>
                           {maintenance.proveedor && (
                             <span>Proveedor: {maintenance.proveedor}</span>
@@ -310,7 +303,7 @@ export default function MaintenanceHistory() {
                         </div>
                         {maintenance.proximoServicioFecha && (
                           <div className="mt-2 text-xs text-blue-600">
-                            Próximo servicio: {formatDate(maintenance.proximoServicioFecha)}
+                            Próximo servicio: {formatDateForDisplay(maintenance.proximoServicioFecha)}
                             {maintenance.proximoServicioKm && ` - ${maintenance.proximoServicioKm.toLocaleString()} km`}
                           </div>
                         )}

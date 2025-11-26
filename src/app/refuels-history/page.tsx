@@ -3,6 +3,7 @@
 import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
 import type { Refuel, Vehicle } from "@/Types";
+import { formatDateForDisplay, getDateValue } from "@/lib/dateUtils";
 
 export default function RefuelsHistory() {
   const [refuels, setRefuels] = useState<Refuel[]>([]);
@@ -77,32 +78,6 @@ export default function RefuelsHistory() {
   const handleClearFilter = () => {
     setFilterVehicle("");
     setTimeout(() => fetchRefuels(), 0);
-  };
-
-  const formatDate = (dateString: string) => {
-    try {
-      if (!dateString) return "Sin fecha";
-      const dateOnly = dateString.split('T')[0];
-      const [year, month, day] = dateOnly.split('-').map(Number);
-      const date = new Date(year, month - 1, day);
-      if (isNaN(date.getTime())) return "Fecha inválida";
-      return date.toLocaleDateString("es-ES", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    } catch (error) {
-      return "Fecha inválida";
-    }
-  };
-
-  const getDateValue = (dateString: string) => {
-    try {
-      const dateOnly = dateString.split('T')[0];
-      return dateOnly;
-    } catch (error) {
-      return "";
-    }
   };
 
   const handleEdit = (refuel: Refuel) => {
@@ -368,7 +343,7 @@ export default function RefuelsHistory() {
                     <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 mb-4">
                       <div className="flex-1 min-w-0">
                         <h3 className="text-lg font-medium text-gray-900 truncate">{refuel.vehicleAlias}</h3>
-                        <p className="text-sm text-gray-500">{formatDate(refuel.fecha)}</p>
+                        <p className="text-sm text-gray-500">{formatDateForDisplay(refuel.fecha)}</p>
                       </div>
                       <div className="flex gap-2">
                         <button

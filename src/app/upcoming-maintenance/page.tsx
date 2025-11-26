@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { UpcomingMaintenance } from "@/Types";
+import { formatDateForDisplayForDisplay, getDaysUntilDateDate } from "@/lib/dateUtils";
 
 export default function UpcomingMaintenancePage() {
   const [upcomingMaintenances, setUpcomingMaintenances] = useState<UpcomingMaintenance[]>([]);
@@ -35,22 +36,6 @@ export default function UpcomingMaintenancePage() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("es-ES", {
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  };
-
-  const getDaysUntil = (dateString: string) => {
-    const today = new Date();
-    const targetDate = new Date(dateString);
-    const diffTime = targetDate.getTime() - today.getTime();
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays;
   };
 
   const getKmRemaining = (targetKm: number, currentKm: number) => {
@@ -147,7 +132,7 @@ export default function UpcomingMaintenancePage() {
           <div className="space-y-4">
             {upcomingMaintenances.map((maintenance) => {
               const daysUntil = maintenance.proximoServicioFecha
-                ? getDaysUntil(maintenance.proximoServicioFecha)
+                ? getDaysUntilDate(maintenance.proximoServicioFecha)
                 : undefined;
               const kmRemaining =
                 maintenance.proximoServicioKm && maintenance.vehicle?.kilometrajeTotal
@@ -184,7 +169,7 @@ export default function UpcomingMaintenancePage() {
                         {maintenance.proximoServicioFecha && (
                           <div className="flex items-center gap-2">
                             <span className="font-medium">Fecha programada:</span>
-                            <span>{formatDate(maintenance.proximoServicioFecha)}</span>
+                            <span>{formatDateForDisplay(maintenance.proximoServicioFecha)}</span>
                             {daysUntil !== undefined && (
                               <span className="ml-2 font-medium">
                                 {daysUntil < 0
@@ -256,7 +241,7 @@ export default function UpcomingMaintenancePage() {
                 {
                   upcomingMaintenances.filter(
                     (m) =>
-                      (m.proximoServicioFecha && getDaysUntil(m.proximoServicioFecha) < 0) ||
+                      (m.proximoServicioFecha && getDaysUntilDate(m.proximoServicioFecha) < 0) ||
                       (m.proximoServicioKm &&
                         m.vehicle?.kilometrajeTotal &&
                         getKmRemaining(m.proximoServicioKm, m.vehicle.kilometrajeTotal) < 0)
@@ -271,8 +256,8 @@ export default function UpcomingMaintenancePage() {
                   upcomingMaintenances.filter(
                     (m) =>
                       m.proximoServicioFecha &&
-                      getDaysUntil(m.proximoServicioFecha) >= 0 &&
-                      getDaysUntil(m.proximoServicioFecha) <= 7
+                      getDaysUntilDate(m.proximoServicioFecha) >= 0 &&
+                      getDaysUntilDate(m.proximoServicioFecha) <= 7
                   ).length
                 }
               </p>
@@ -284,8 +269,8 @@ export default function UpcomingMaintenancePage() {
                   upcomingMaintenances.filter(
                     (m) =>
                       m.proximoServicioFecha &&
-                      getDaysUntil(m.proximoServicioFecha) > 7 &&
-                      getDaysUntil(m.proximoServicioFecha) <= 30
+                      getDaysUntilDate(m.proximoServicioFecha) > 7 &&
+                      getDaysUntilDate(m.proximoServicioFecha) <= 30
                   ).length
                 }
               </p>

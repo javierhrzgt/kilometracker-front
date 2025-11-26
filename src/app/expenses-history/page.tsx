@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { Expense, Vehicle, ExpenseFilters } from "@/Types";
 import { useRouter } from "next/navigation";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 
 const EXPENSE_CATEGORIES = [
   "Seguro",
@@ -343,7 +344,7 @@ export default function ExpensesHistory() {
                   {expenses.map((expense) => (
                     <tr key={expense._id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {new Date(expense.fecha).toLocaleDateString("es-ES")}
+                        {formatDateForDisplay(expense.fecha)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
                         {expense.vehicleAlias}

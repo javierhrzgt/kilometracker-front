@@ -2,6 +2,7 @@
 
 import { useState, useEffect, ChangeEvent, FormEvent, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { getTodayDateString } from "@/lib/dateUtils";
 
 interface Vehicle {
   _id: string;
@@ -23,7 +24,7 @@ function AddRouteForm({ vehicleFromUrl }: { vehicleFromUrl: string | null }) {
   const [formData, setFormData] = useState<FormData>({
     vehicleAlias: vehicleFromUrl || "",
     distanciaRecorrida: "",
-    fecha: new Date().toISOString().split("T")[0],
+    fecha: getTodayDateString(),
     notasAdicionales: "",
   });
   const [loading, setLoading] = useState(false);

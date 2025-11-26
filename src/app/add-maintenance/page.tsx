@@ -3,6 +3,7 @@
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { AddMaintenanceFormData, Vehicle } from "@/Types";
+import { getTodayDateString } from "@/lib/dateUtils";
 
 const MAINTENANCE_TYPES = [
   { value: "Cambio de aceite", label: "Cambio de aceite" },
@@ -25,7 +26,7 @@ export default function AddMaintenance() {
     tipo: "",
     descripcion: "",
     costo: "",
-    fecha: new Date().toISOString().split("T")[0],
+    fecha: getTodayDateString(),
     kilometraje: "",
     proveedor: "",
     proximoServicioFecha: "",
