@@ -2,6 +2,11 @@
 
 import { useState, FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Car } from "lucide-react";
 
 export default function Home() {
   const [email, setEmail] = useState("");
@@ -39,95 +44,96 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-white px-4">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-4">
       <div className="w-full max-w-md">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-light text-gray-900 mb-2">
-            Iniciar sesión
-          </h1>
-          <p className="text-sm text-gray-500">
-            Ingresa tus credenciales para continuar
-          </p>
+        {/* Logo/Brand */}
+        <div className="flex items-center justify-center gap-3 mb-8">
+          <div className="p-3 bg-primary rounded-xl">
+            <Car className="h-8 w-8 text-primary-foreground" />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-foreground">KM Tracker</h1>
+            <p className="text-sm text-muted-foreground">Gestión de vehículos</p>
+          </div>
         </div>
 
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Error Message */}
-          {error && (
-            <div className="p-4 bg-red-50 border border-red-200 text-red-800 text-sm rounded">
-              {error}
-            </div>
-          )}
+        {/* Login Card */}
+        <Card className="shadow-xl">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-2xl">Iniciar sesión</CardTitle>
+            <CardDescription>
+              Ingresa tus credenciales para continuar
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Error Message */}
+              {error && (
+                <div className="p-3 bg-destructive/10 border border-destructive/20 text-destructive text-sm rounded-lg">
+                  {error}
+                </div>
+              )}
 
-          {/* Email Field */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Correo electrónico
-            </label>
-            <input
-              id="email"
-              required
-              type="email"
-              placeholder="correo@ejemplo.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-              className="w-full border border-gray-300 rounded p-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
-            />
-          </div>
+              {/* Email Field */}
+              <div className="space-y-2">
+                <Label htmlFor="email">Correo electrónico</Label>
+                <Input
+                  id="email"
+                  required
+                  type="email"
+                  placeholder="correo@ejemplo.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
+                  autoComplete="email"
+                />
+              </div>
 
-          {/* Password Field */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-gray-700 mb-2"
-            >
-              Contraseña
-            </label>
-            <input
-              id="password"
-              required
-              type="password"
-              placeholder="••••••••"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              disabled={loading}
-              className="w-full border border-gray-300 rounded p-3 text-gray-900 placeholder-gray-400 focus:border-gray-900 focus:outline-none disabled:opacity-50 disabled:bg-gray-50"
-            />
-          </div>
+              {/* Password Field */}
+              <div className="space-y-2">
+                <Label htmlFor="password">Contraseña</Label>
+                <Input
+                  id="password"
+                  required
+                  type="password"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
+                  autoComplete="current-password"
+                />
+              </div>
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={loading || !email || !password}
-            className="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? "Cargando..." : "Iniciar sesión"}
-          </button>
+              {/* Submit Button */}
+              <Button
+                type="submit"
+                disabled={loading || !email || !password}
+                className="w-full"
+                size="lg"
+              >
+                {loading ? "Cargando..." : "Iniciar sesión"}
+              </Button>
 
-          {/* Register Link */}
-          <div className="text-center text-sm text-gray-500">
-            ¿No tienes cuenta?{" "}
-            <button
-              type="button"
-              onClick={() => router.push("/register")}
-              className="text-gray-900 hover:text-gray-700 font-medium"
-            >
-              Regístrate
-            </button>
-          </div>
-        </form>
+              {/* Register Link */}
+              <div className="text-center text-sm text-muted-foreground">
+                ¿No tienes cuenta?{" "}
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => router.push("/register")}
+                  className="p-0 h-auto font-semibold"
+                >
+                  Regístrate
+                </Button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
         {/* Footer */}
-        <div className="mt-8 text-center">
-          <p className="text-xs text-gray-500">
-            Sistema de gestión de vehículos
-          </p>
-        </div>
+        <p className="text-center text-xs text-muted-foreground mt-8">
+          Sistema de gestión de vehículos
+        </p>
       </div>
     </div>
   );
