@@ -132,6 +132,86 @@ All entity types are defined in `src/Types.ts`:
 **5. Client Components**
 All page components use `"use client"` directive for interactive features (forms, state management, routing). The app does not use Server Components for data fetching; instead it uses client-side `fetch()` calls to `/api/*` routes.
 
+**6. Context-Based State Management**
+The application uses React Context for global state management:
+
+- **UserContext** (`src/contexts/UserContext.tsx`): Manages user authentication state
+  - Fetches user data from `/api/auth/me` on mount
+  - Provides: `user`, `isLoading`, `error`, `isAdmin`, `isAuthenticated`, `refreshUser()`
+  - Secured by server-validated JWT tokens (no localStorage manipulation)
+  - Use via `useUser()` hook
+  - Integrated in dashboard layout as outermost provider
+
+- **VehicleContext** (`src/contexts/VehicleContext.tsx`): Manages vehicle data
+  - Fetches active vehicles from `/api/vehicles`
+  - Provides: `vehicles`, `selectedVehicle`, `setSelectedVehicle`, `isLoading`, `error`, `refreshVehicles()`
+  - Filters to show only active vehicles
+  - Use via `useVehicle()` hook
+
+- **SidebarContext** (`src/contexts/SidebarContext.tsx`): Manages sidebar collapse state
+  - Persists state to localStorage
+  - Syncs across tabs using storage events
+  - Use via `useSidebar()` hook
+
+**7. Navigation Badge Counts**
+The navigation displays real-time badge counts for upcoming items:
+
+- **useUpcomingCounts Hook** (`src/hooks/useUpcomingCounts.ts`):
+  - Fetches counts from `/api/maintenance/upcoming` and `/api/expenses/upcoming`
+  - Returns: `{ maintenanceCount, expensesCount, isLoading, error }`
+  - Auto-refreshes every 5 minutes
+  - Gracefully handles errors (returns 0 on failure)
+  - Used in both Sidebar and SidebarDrawer components
+
+- Badge counts display on:
+  - "Próximos servicios" (upcoming maintenance)
+  - "Gastos recurrentes" (recurring expenses)
+
+**8. Fuel Analysis Routes**
+The fuel analysis feature has two routes:
+
+- `/fuel-analysis` - Generic landing page (NEW)
+  - Shows vehicle selector when no vehicle is selected
+  - Auto-redirects to first vehicle if vehicles exist
+  - Shows "Add Vehicle" prompt if no vehicles registered
+  - Uses VehicleContext for vehicle data
+
+- `/fuel-analysis/[alias]` - Vehicle-specific analysis page
+  - Displays fuel consumption metrics for specific vehicle
+  - Fetches data from `/api/refuels/vehicle/${alias}/analysis`
+
+**9. Reusable UI Components**
+
+- **EmptyState** (`src/components/ui/empty-state.tsx`):
+  - Consistent empty state UI across all pages
+  - Props: `icon`, `title`, `description`, `action?`
+  - Action can have `onClick` or `href`
+  - Example usage:
+    ```tsx
+    <EmptyState
+      icon={<Car className="h-12 w-12" />}
+      title="No vehicles registered"
+      description="Add your first vehicle to start tracking"
+      action={{
+        label: "Add Vehicle",
+        onClick: () => router.push("/add-vehicle")
+      }}
+    />
+    ```
+
+- **VehicleCardSkeleton** (`src/components/ui/vehicle-card-skeleton.tsx`):
+  - Loading skeleton matching VehicleCard layout
+  - Prevents layout shift during loading
+  - Used in dashboard grid (4 skeleton cards)
+  - Based on shadcn/ui Skeleton component
+
+**10. Loading State Pattern**
+Dashboard and other pages use skeleton loading states:
+- Show full page layout with skeleton components during loading
+- Maintains PageHeader and layout structure
+- Uses VehicleCardSkeleton for vehicle grid
+- Prevents jarring layout shifts
+
 ## Backend API Endpoints
 
 The backend provides these endpoints (accessed through frontend proxy routes):
