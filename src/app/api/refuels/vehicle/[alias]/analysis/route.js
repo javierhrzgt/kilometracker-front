@@ -1,31 +1,19 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/refuels/vehicle/:alias/analysis - Análisis de consumo
 export async function GET(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const { alias } = await params;
 
-    console.log('Obteniendo análisis de consumo de:', alias);
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/refuels/vehicle/${alias}/analysis`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(`/api/refuels/vehicle/${alias}/analysis`);
 
     if (!response.ok) {
-      throw new Error('Error al obtener análisis de consumo');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener análisis de consumo' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -34,7 +22,7 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('Error en GET refuel analysis:', error);
     return NextResponse.json(
-      { error: 'Error al obtener análisis de consumo: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

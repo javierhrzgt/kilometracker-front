@@ -1,31 +1,15 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/expenses/:id - Get expense by ID
 export async function GET(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const { id } = await params;
 
-    console.log('Obteniendo gasto:', id);
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/expenses/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(`/api/expenses/${id}`);
 
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       return NextResponse.json(
         { error: data.message || 'Error al obtener gasto' },
         { status: response.status }
@@ -38,7 +22,7 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('Error en GET expense:', error);
     return NextResponse.json(
-      { error: 'Error al obtener gasto: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -47,27 +31,11 @@ export async function GET(request, { params }) {
 // PUT /api/expenses/:id - Update expense
 export async function PUT(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const { id } = await params;
     const body = await request.json();
 
-    console.log('Actualizando gasto:', id);
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/expenses/${id}`, {
+    const response = await bffFetch(`/api/expenses/${id}`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
 
@@ -80,14 +48,12 @@ export async function PUT(request, { params }) {
       );
     }
 
-    console.log('Gasto actualizado exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en PUT expense:', error);
     return NextResponse.json(
-      { error: 'Error al actualizar gasto: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -96,29 +62,14 @@ export async function PUT(request, { params }) {
 // DELETE /api/expenses/:id - Delete expense (PERMANENT DELETE - cannot be undone)
 export async function DELETE(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const { id } = await params;
 
-    console.log('Eliminando gasto:', id);
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/expenses/${id}`, {
+    const response = await bffFetch(`/api/expenses/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
     });
 
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       return NextResponse.json(
         { error: data.message || 'Error al eliminar gasto' },
         { status: response.status }
@@ -126,14 +77,12 @@ export async function DELETE(request, { params }) {
     }
 
     const data = await response.json();
-    console.log('Gasto eliminado exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en DELETE expense:', error);
     return NextResponse.json(
-      { error: 'Error al eliminar gasto: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

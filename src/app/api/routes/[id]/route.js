@@ -1,29 +1,19 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/routes/:id - Obtener ruta específica
 export async function GET(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
+    const { id } = await params;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await params; // ← Agregar await aquí
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/routes/${id}`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(`/api/routes/${id}`);
 
     if (!response.ok) {
-      throw new Error('Error al obtener la ruta');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener la ruta' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -32,7 +22,7 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('Error en GET route by id:', error);
     return NextResponse.json(
-      { error: 'Error al obtener la ruta: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -41,27 +31,11 @@ export async function GET(request, { params }) {
 // PUT /api/routes/:id - Actualizar ruta
 export async function PUT(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await params; // ← Agregar await aquí
+    const { id } = await params;
     const body = await request.json();
 
-    console.log('Actualizando ruta:', id, body);
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/routes/${id}`, {
+    const response = await bffFetch(`/api/routes/${id}`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
 
@@ -74,14 +48,12 @@ export async function PUT(request, { params }) {
       );
     }
 
-    console.log('Ruta actualizada exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en PUT route:', error);
     return NextResponse.json(
-      { error: 'Error al actualizar la ruta: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -90,25 +62,10 @@ export async function PUT(request, { params }) {
 // DELETE /api/routes/:id - Eliminar ruta
 export async function DELETE(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
+    const { id } = await params;
 
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
-    const { id } = await params; // ← Agregar await aquí
-
-    console.log('Eliminando ruta:', id);
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/routes/${id}`, {
+    const response = await bffFetch(`/api/routes/${id}`, {
       method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
     });
 
     const data = await response.json();
@@ -120,14 +77,12 @@ export async function DELETE(request, { params }) {
       );
     }
 
-    console.log('Ruta eliminada exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en DELETE route:', error);
     return NextResponse.json(
-      { error: 'Error al eliminar la ruta: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

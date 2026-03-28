@@ -1,21 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 export async function POST(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-    
-    console.log('Creando ruta:', body);
 
     if (!body.vehicleAlias || !body.distanciaRecorrida || !body.fecha) {
       return NextResponse.json(
@@ -24,16 +12,10 @@ export async function POST(request) {
       );
     }
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/routes`, {
+    const response = await bffFetch('/api/routes', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
-
-    console.log('Status de crear ruta:', response.status);
 
     const data = await response.json();
 
@@ -44,14 +26,12 @@ export async function POST(request) {
       );
     }
 
-    console.log('Ruta creada exitosamente. Nuevo kilometraje:', data.vehicleKilometraje);
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en routes:', error);
     return NextResponse.json(
-      { error: 'Error al crear la ruta: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -59,16 +39,6 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     // Obtener query params
     const { searchParams } = new URL(request.url);
     const vehicleAlias = searchParams.get('vehicleAlias');
@@ -81,17 +51,16 @@ export async function GET(request) {
     if (startDate) params.append('startDate', startDate);
     if (endDate) params.append('endDate', endDate);
 
-    const url = `${process.env.API_BASE_URL}/api/routes${params.toString() ? '?' + params.toString() : ''}`;
-    console.log('Obteniendo rutas:', url);
+    const path = `/api/routes${params.toString() ? '?' + params.toString() : ''}`;
 
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(path);
 
     if (!response.ok) {
-      throw new Error('Error al obtener rutas');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener rutas' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -100,7 +69,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error en GET routes:', error);
     return NextResponse.json(
-      { error: 'Error al obtener rutas: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

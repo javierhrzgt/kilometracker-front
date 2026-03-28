@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/vehicles - Listar vehículos
 export async function GET(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     // Obtener query params
     const { searchParams } = new URL(request.url);
     const includeInactive = searchParams.get('includeInactive');
@@ -24,18 +14,16 @@ export async function GET(request) {
     if (includeInactive) params.append('includeInactive', includeInactive);
     if (isActive !== null) params.append('isActive', isActive);
 
-    const url = `${process.env.API_BASE_URL}/api/vehicles${params.toString() ? '?' + params.toString() : ''}`;
-    
-    console.log('Obteniendo vehículos:', url);
+    const path = `/api/vehicles${params.toString() ? '?' + params.toString() : ''}`;
 
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(path);
 
     if (!response.ok) {
-      throw new Error('Error al obtener vehículos');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener vehículos' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -44,7 +32,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error en GET vehicles:', error);
     return NextResponse.json(
-      { error: 'Error al obtener vehículos: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -53,19 +41,7 @@ export async function GET(request) {
 // POST /api/vehicles - Crear vehículo
 export async function POST(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-    
-    console.log('Creando vehículo:', body);
 
     // Validación básica
     if (!body.alias || !body.marca || !body.modelo || !body.plates) {
@@ -75,12 +51,8 @@ export async function POST(request) {
       );
     }
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/vehicles`, {
+    const response = await bffFetch('/api/vehicles', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
 
@@ -93,14 +65,12 @@ export async function POST(request) {
       );
     }
 
-    console.log('Vehículo creado exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en POST vehicles:', error);
     return NextResponse.json(
-      { error: 'Error al crear el vehículo: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

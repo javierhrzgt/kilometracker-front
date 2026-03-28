@@ -4,9 +4,10 @@ export function middleware(request) {
   const token = request.cookies.get('token');
   const { pathname } = request.nextUrl;
 
-  // Public routes (login and register)
-  const publicRoutes = ['/', '/register'];
-  const isPublicRoute = publicRoutes.includes(pathname);
+  // Public routes (login, register y recuperación de contraseña)
+  const publicRoutes = ['/', '/register', '/forgot-password'];
+  const isPublicRoute =
+    publicRoutes.includes(pathname) || pathname.startsWith('/reset-password/');
 
   // API routes should not be protected by this middleware
   const isApiRoute = pathname.startsWith('/api');

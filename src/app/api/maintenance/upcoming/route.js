@@ -1,29 +1,17 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/maintenance/upcoming - Get upcoming maintenance
-export async function GET(request) {
+export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
-    console.log('Obteniendo mantenimientos próximos');
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/maintenance/upcoming`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch('/api/maintenance/upcoming');
 
     if (!response.ok) {
-      throw new Error('Error al obtener mantenimientos próximos');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener mantenimientos próximos' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -32,7 +20,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error en GET upcoming maintenance:', error);
     return NextResponse.json(
-      { error: 'Error al obtener mantenimientos próximos: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

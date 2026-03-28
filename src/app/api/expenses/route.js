@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/expenses - List all expenses (no soft delete, all records are active)
 export async function GET(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     // Get query params
     const { searchParams } = new URL(request.url);
     const vehicleAlias = searchParams.get('vehicleAlias');
@@ -32,18 +22,12 @@ export async function GET(request) {
     if (esDeducibleImpuestos !== null) params.append('esDeducibleImpuestos', esDeducibleImpuestos);
     // isActive filter removed as expenses use permanent delete
 
-    const url = `${process.env.API_BASE_URL}/api/expenses${params.toString() ? '?' + params.toString() : ''}`;
+    const path = `/api/expenses${params.toString() ? '?' + params.toString() : ''}`;
 
-    console.log('Obteniendo gastos:', url);
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(path);
 
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       return NextResponse.json(
         { error: data.message || 'Error al obtener gastos' },
         { status: response.status }
@@ -56,7 +40,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error en GET expenses:', error);
     return NextResponse.json(
-      { error: 'Error al obtener gastos: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -65,19 +49,7 @@ export async function GET(request) {
 // POST /api/expenses - Create new expense
 export async function POST(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-
-    console.log('Creando gasto:', body);
 
     // Validation
     if (!body.vehicleAlias || !body.categoria || !body.monto || !body.descripcion) {
@@ -87,12 +59,8 @@ export async function POST(request) {
       );
     }
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/expenses`, {
+    const response = await bffFetch('/api/expenses', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
 
@@ -105,14 +73,12 @@ export async function POST(request) {
       );
     }
 
-    console.log('Gasto creado exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en POST expense:', error);
     return NextResponse.json(
-      { error: 'Error al crear gasto: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

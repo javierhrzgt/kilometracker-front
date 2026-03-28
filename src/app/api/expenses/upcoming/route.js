@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/expenses/upcoming - Get recurring expenses due in next 30 days
 export async function GET(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     // Get query params (optional filters)
     const { searchParams } = new URL(request.url);
     const vehicleAlias = searchParams.get('vehicleAlias');
@@ -23,18 +13,12 @@ export async function GET(request) {
     if (vehicleAlias) params.append('vehicleAlias', vehicleAlias);
     if (days) params.append('days', days);
 
-    const url = `${process.env.API_BASE_URL}/api/expenses/upcoming${params.toString() ? '?' + params.toString() : ''}`;
+    const path = `/api/expenses/upcoming${params.toString() ? '?' + params.toString() : ''}`;
 
-    console.log('Obteniendo gastos próximos:', url);
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(path);
 
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       return NextResponse.json(
         { error: data.message || 'Error al obtener gastos próximos' },
         { status: response.status }
@@ -47,7 +31,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error en GET upcoming expenses:', error);
     return NextResponse.json(
-      { error: 'Error al obtener gastos próximos: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

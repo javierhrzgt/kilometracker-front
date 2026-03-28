@@ -1,32 +1,17 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // PATCH /api/vehicles/:alias/reactivate - Reactivate vehicle
 export async function PATCH(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const { alias } = await params;
 
-    console.log('Reactivando vehículo:', alias);
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/vehicles/${alias}/reactivate`, {
+    const response = await bffFetch(`/api/vehicles/${alias}/reactivate`, {
       method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
     });
 
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       return NextResponse.json(
         { error: data.message || 'Error al reactivar el vehículo' },
         { status: response.status }
@@ -34,13 +19,12 @@ export async function PATCH(request, { params }) {
     }
 
     const data = await response.json();
-    console.log('Vehículo reactivado exitosamente');
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en PATCH reactivate vehicle:', error);
     return NextResponse.json(
-      { error: 'Error al reactivar el vehículo: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
