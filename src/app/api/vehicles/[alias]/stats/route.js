@@ -25,7 +25,11 @@ export async function GET(request, { params }) {
     });
 
     if (!response.ok) {
-      throw new Error('Error al obtener estadísticas');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener estadísticas' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();

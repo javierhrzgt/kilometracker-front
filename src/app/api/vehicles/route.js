@@ -88,7 +88,7 @@ export async function POST(request) {
 
     if (!response.ok) {
       return NextResponse.json(
-        { error: data.message || 'Error al crear el vehículo' },
+        { error: data.error || 'Error al crear el vehículo' },
         { status: response.status }
       );
     }

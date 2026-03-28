@@ -2,8 +2,11 @@
 
 @theme {
   /* Background & Foreground */
-  --color-background: hsl(0 0% 100%);
+  --color-background: hsl(0 0% 98%);
   --color-foreground: hsl(222.2 84% 4.9%);
+
+  /* Sidebar */
+  --color-sidebar: hsl(240 4% 96%);
 
   /* Card */
   --color-card: hsl(0 0% 100%);
@@ -14,7 +17,7 @@
   --color-popover-foreground: hsl(222.2 84% 4.9%);
 
   /* Primary - Indigo for CTAs */
-  --color-primary: hsl(239 84% 67%);
+  --color-primary: hsl(239 84% 58%);
   --color-primary-foreground: hsl(0 0% 100%);
 
   /* Secondary */
@@ -52,7 +55,7 @@
   /* Borders & Inputs */
   --color-border: hsl(214.3 31.8% 91.4%);
   --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(239 84% 67%);
+  --color-ring: hsl(239 84% 58%);
 
   /* Radius */
   --radius: 0.5rem;
