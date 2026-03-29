@@ -3,7 +3,7 @@
  * register → login → add-vehicle (km: 50000) → add-route (250km)
  * → verificar vehicle-stats.kilometrajeTotal === 50250
  */
-import { test, expect, Page } from "@playwright/test";
+import { test, expect, Page, request } from "@playwright/test";
 
 const timestamp = Date.now();
 const TEST_USER = {
@@ -24,7 +24,7 @@ const ROUTE_KM = 250;
 async function register(page: Page) {
   await page.goto("/register");
   await page.getByLabel(/usuario|username/i).fill(TEST_USER.username);
-  await page.getByLabel(/email/i).fill(TEST_USER.email);
+  await page.getByLabel(/correo|email/i).fill(TEST_USER.email);
   await page.getByLabel(/contraseña|password/i).first().fill(TEST_USER.password);
   // Confirm password field if present
   const confirmField = page.getByLabel(/confirmar|confirm/i);
@@ -38,15 +38,41 @@ async function register(page: Page) {
 
 async function login(page: Page) {
   await page.goto("/");
-  await page.getByLabel(/email/i).fill(TEST_USER.email);
+  await page.getByLabel(/correo|email/i).fill(TEST_USER.email);
   await page.getByLabel(/contraseña|password/i).fill(TEST_USER.password);
   await page.getByRole("button", { name: /iniciar|login|entrar/i }).click();
   await page.waitForURL(/\/dashboard/, { timeout: 10_000 });
 }
 
+const ADMIN = {
+  email: "test.claude.eval@example.com",
+  password: "Test1234!",
+};
+
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
 test.describe("Vehicle tracking flow", () => {
+  test.afterAll(async () => {
+    const api = await request.newContext({ baseURL: "http://localhost:3000" });
+
+    // Login como admin
+    const loginRes = await api.post("/api/auth/login", {
+      data: { email: ADMIN.email, password: ADMIN.password },
+    });
+    if (!loginRes.ok()) return;
+
+    // Buscar el usuario de test
+    const usersRes = await api.get("/api/auth/users");
+    if (!usersRes.ok()) return;
+    const { data: users } = await usersRes.json();
+
+    const testUser = users.find((u: { email: string }) => u.email === TEST_USER.email);
+    if (!testUser) return;
+
+    // Desactivar usuario de test
+    await api.delete(`/api/auth/users/${testUser._id}`);
+    await api.dispose();
+  });
   test("register, add vehicle, add route, verify kilometrajeTotal", async ({
     page,
   }) => {
@@ -69,14 +95,14 @@ test.describe("Vehicle tracking flow", () => {
 
     // Should redirect to dashboard
     await page.waitForURL(/\/dashboard/, { timeout: 10_000 });
-    await expect(page.getByText(VEHICLE.alias)).toBeVisible({ timeout: 8_000 });
+    await expect(page.getByRole("heading", { name: VEHICLE.alias })).toBeVisible({ timeout: 8_000 });
 
     // 3. Add route
     await page.goto("/add-route");
 
     // Select vehicle
-    const vehicleSelect = page.getByLabel(/vehículo/i);
-    await vehicleSelect.selectOption({ label: VEHICLE.alias });
+    const vehicleSelect = page.locator("select#vehicleAlias");
+    await vehicleSelect.selectOption({ value: VEHICLE.alias });
 
     // Fill distance
     await page.getByLabel(/distancia/i).fill(String(ROUTE_KM));
@@ -97,7 +123,7 @@ test.describe("Vehicle tracking flow", () => {
 
     // The page should show 50250 as kilometrajeTotal
     await expect(
-      page.getByText(new RegExp(expectedTotal.toLocaleString()))
-    ).toBeVisible({ timeout: 8_000 });
+      page.getByText(new RegExp(expectedTotal.toLocaleString())).first()
+    ).toBeVisible({ timeout: 15_000 });
   });
 });

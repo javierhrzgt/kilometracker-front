@@ -38,11 +38,13 @@ export interface Refuel {
   updatedAt: string;
 }
 
+export type UserRole = 'read' | 'write' | 'admin' | 'root';
+
 export interface User {
   _id: string;
   username: string;
   email: string;
-  role: string;
+  role: UserRole;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
