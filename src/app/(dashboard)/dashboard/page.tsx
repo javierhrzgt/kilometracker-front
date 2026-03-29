@@ -14,6 +14,7 @@ import { VehicleCardSkeleton } from "@/components/ui/vehicle-card-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
 import { MetricCard } from "@/components/ui/MetricCard";
 import { KmAreaChart } from "@/components/charts/KmAreaChart";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Car, Route, Fuel, Wrench, Bell } from "lucide-react";
 
 interface DashboardSummary {
@@ -287,11 +288,9 @@ export default function Dashboard() {
                 )}
             </h2>
             <label className="flex items-center gap-2 cursor-pointer">
-              <input
-                type="checkbox"
+              <Checkbox
                 checked={showInactive}
-                onChange={(e) => setShowInactive(e.target.checked)}
-                className="w-4 h-4 rounded text-primary focus:ring-2 focus:ring-primary"
+                onCheckedChange={(val) => setShowInactive(val as boolean)}
               />
               <span className="text-sm text-foreground">Mostrar inactivos</span>
             </label>

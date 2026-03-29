@@ -49,35 +49,26 @@ export interface User {
 }
 
 export interface VehicleStats {
-  // Legacy fields (still supported)
-  totalRoutes?: number;
-  totalDistancia?: number;
-  promedioDistanciaPorRuta?: number;
-  totalRefuels?: number;
-  totalGastoCombustible?: number;
-  // Enhanced fields (from backend /api/vehicles/:alias/stats)
-  vehicle?: Vehicle;
-  statistics?: {
+  vehicle: Vehicle;
+  statistics: {
     totalRoutes: number;
     totalRefuels: number;
     totalMaintenances: number;
     totalExpenses: number;
     totalDistancia: number;
   };
-  costs?: {
+  costs: {
     combustible: number;
     mantenimiento: number;
     gastosOtros: number;
     total: number;
     costoPorKm: number;
   };
-  efficiency?: {
+  efficiency: {
     kmPorLitro: number;
     kmPorGalon: number;
     promedioDistanciaPorRuta: number;
   };
-  // Additional computed fields
-  totalCostOfOwnership?: number;
 }
 
 export interface FuelAnalysis {

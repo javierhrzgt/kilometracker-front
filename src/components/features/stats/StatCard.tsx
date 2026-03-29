@@ -1,4 +1,6 @@
 import { ReactNode } from "react";
+import { Card, CardContent } from "@/components/ui/card";
+import { cn } from "@/lib/utils";
 
 interface StatCardProps {
   label: string;
@@ -30,22 +32,22 @@ export function StatCard({
   }[size];
 
   return (
-    <div
-      className={`border border-border rounded-lg p-4 sm:p-6 bg-card shadow-sm hover:shadow-depth-2 transition-elevation ${className}`}
-    >
-      <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 uppercase tracking-wide">
-        {label}
-      </p>
-      {children || (
-        <p className={`${valueSize} font-light text-foreground`}>
-          {value}
-          {unit && (
-            <span className={`${unitSize} text-muted-foreground ml-1`}>
-              {unit}
-            </span>
-          )}
+    <Card className={cn("hover:shadow-depth-2 transition-elevation", className)}>
+      <CardContent className="p-4 sm:p-6">
+        <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 uppercase tracking-wide">
+          {label}
         </p>
-      )}
-    </div>
+        {children || (
+          <p className={cn(valueSize, "font-light text-foreground")}>
+            {value}
+            {unit && (
+              <span className={cn(unitSize, "text-muted-foreground ml-1")}>
+                {unit}
+              </span>
+            )}
+          </p>
+        )}
+      </CardContent>
+    </Card>
   );
 }
