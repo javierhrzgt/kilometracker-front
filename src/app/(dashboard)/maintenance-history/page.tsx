@@ -14,7 +14,8 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Filter, Plus, Edit, Trash2, X, AlertCircle } from "lucide-react";
+import { Filter, Plus, Edit, Trash2, X, AlertCircle, Wrench } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const MAINTENANCE_TYPES = [
   "Cambio de aceite",
@@ -275,15 +276,15 @@ export default function MaintenanceHistory() {
             </CardContent>
           </Card>
         ) : maintenances.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <p className="text-muted-foreground mb-4">No hay mantenimientos registrados</p>
-              <Button onClick={() => router.push("/add-maintenance")}>
-                <Plus className="h-4 w-4 mr-2" />
-                Agregar Mantenimiento
-              </Button>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Wrench className="h-12 w-12" />}
+            title="Sin mantenimientos registrados"
+            description="Lleva el control de los servicios de tus vehículos: cambios de aceite, frenos, llantas y más para evitar sorpresas."
+            action={{
+              label: "Agregar mantenimiento",
+              onClick: () => router.push("/add-maintenance"),
+            }}
+          />
         ) : (
           <Card>
             <Table>

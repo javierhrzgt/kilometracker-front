@@ -29,6 +29,7 @@ import { Button } from "@/components/ui/button";
 import { VehicleSwitcher } from "./VehicleSwitcher";
 import { NavItem } from "./NavItem";
 import { NavGroup } from "./NavGroup";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 interface SidebarProps {
   className?: string;
@@ -276,8 +277,9 @@ export function Sidebar({ className }: SidebarProps) {
         </div>
       </ScrollArea>
 
-      {/* Footer with Logout */}
-      <div className="p-3 border-t border-border">
+      {/* Footer with Theme Toggle + Logout */}
+      <div className="p-3 border-t border-border space-y-1">
+        <ThemeToggle collapsed={isCollapsed} />
         <Button
           variant="ghost"
           className={cn(

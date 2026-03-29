@@ -10,6 +10,8 @@ import { useApiData } from "@/hooks/useApiData";
 import { FuelBarChart } from "@/components/charts/FuelBarChart";
 import { FuelEfficiencyLineChart } from "@/components/charts/FuelEfficiencyLineChart";
 import { FuelComposedChart } from "@/components/charts/FuelComposedChart";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Fuel } from "lucide-react";
 
 interface AnalyticsSeries {
   distancia: Array<{ period: string; label: string; value: number }>;
@@ -281,11 +283,15 @@ export default function FuelAnalysisPage() {
             </div>
           </div>
         ) : (
-          <div className="text-center py-16 border border-border rounded-lg bg-card">
-            <p className="text-muted-foreground">
-              No hay datos de análisis disponibles
-            </p>
-          </div>
+          <EmptyState
+            icon={<Fuel className="h-12 w-12" />}
+            title="Sin recargas registradas"
+            description="Agrega recargas de combustible para calcular tu eficiencia en km/litro y conocer el costo por kilómetro."
+            action={{
+              label: "Registrar recarga",
+              onClick: () => router.push("/add-refuel"),
+            }}
+          />
         )}
       </main>
     </>

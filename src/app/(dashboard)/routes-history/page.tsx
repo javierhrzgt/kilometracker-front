@@ -14,7 +14,8 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Filter, Plus, Edit, Trash2, X, Check, AlertCircle } from "lucide-react";
+import { Filter, Plus, Edit, Trash2, X, Check, AlertCircle, Map } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 export default function RoutesHistory() {
   const [routes, setRoutes] = useState<Route[]>([]);
@@ -279,11 +280,15 @@ export default function RoutesHistory() {
             </CardContent>
           </Card>
         ) : filteredRoutes.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <p className="text-muted-foreground">No hay rutas registradas</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Map className="h-12 w-12" />}
+            title="Sin rutas registradas"
+            description="Registra tus viajes para llevar un seguimiento de los kilómetros recorridos y mantener el odómetro actualizado."
+            action={{
+              label: "Registrar ruta",
+              onClick: () => router.push("/add-route"),
+            }}
+          />
         ) : (
           <Card>
             <Table>

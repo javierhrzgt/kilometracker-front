@@ -31,6 +31,7 @@ import { Button } from "@/components/ui/button";
 import { VehicleSwitcher } from "./VehicleSwitcher";
 import { NavItem } from "./NavItem";
 import { NavGroup } from "./NavGroup";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 
 interface SidebarDrawerProps {
   isOpen: boolean;
@@ -257,8 +258,9 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
           </div>
         </ScrollArea>
 
-        {/* Footer with Logout */}
-        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border bg-background">
+        {/* Footer with Theme Toggle + Logout */}
+        <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-border bg-background space-y-1">
+          <ThemeToggle />
           <Button
             variant="ghost"
             className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-accent"

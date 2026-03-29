@@ -14,7 +14,8 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Filter, Plus, Edit, Trash2, X, AlertCircle } from "lucide-react";
+import { Filter, Plus, Edit, Trash2, X, AlertCircle, Receipt } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
 
 const EXPENSE_CATEGORIES = [
   "Seguro",
@@ -292,11 +293,15 @@ export default function ExpensesHistory() {
             </CardContent>
           </Card>
         ) : expenses.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <p className="text-muted-foreground">No se encontraron gastos</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Receipt className="h-12 w-12" />}
+            title="Sin gastos registrados"
+            description="Registra seguros, impuestos, estacionamiento y otros gastos para conocer el costo total de tus vehículos."
+            action={{
+              label: "Registrar gasto",
+              onClick: () => router.push("/add-expense"),
+            }}
+          />
         ) : (
           <Card>
             <Table>
