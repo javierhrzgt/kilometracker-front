@@ -13,6 +13,7 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { DollarSign, TrendingUp, Filter, AlertCircle } from "lucide-react";
+import { ExpenseDonutChart } from "@/components/charts/ExpenseDonutChart";
 
 export default function ExpensesSummary() {
   const [summary, setSummary] = useState<ExpenseSummary[]>([]);
@@ -213,6 +214,20 @@ export default function ExpensesSummary() {
             </CardContent>
           </Card>
         </div>
+
+        {/* Donut Chart */}
+        {summary.length > 0 && (
+          <Card className="mb-6 shadow-sm">
+            <CardHeader>
+              <CardTitle className="text-base font-semibold">Distribución por categoría</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ExpenseDonutChart
+                data={summary.map((s) => ({ categoria: s._id, total: s.totalMonto }))}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Category Breakdown */}
         {summary.length === 0 ? (

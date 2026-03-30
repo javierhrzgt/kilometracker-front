@@ -5,6 +5,21 @@ import { useRouter, useParams } from "next/navigation";
 import type { FuelAnalysis } from "@/Types";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/features/stats/StatCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApiData } from "@/hooks/useApiData";
+import { FuelBarChart } from "@/components/charts/FuelBarChart";
+import { FuelEfficiencyLineChart } from "@/components/charts/FuelEfficiencyLineChart";
+import { FuelComposedChart } from "@/components/charts/FuelComposedChart";
+
+interface AnalyticsSeries {
+  distancia: Array<{ period: string; label: string; value: number }>;
+  costoCombustible: Array<{ period: string; label: string; value: number }>;
+  eficiencia: Array<{ period: string; label: string; kmPorLitro: number; costoPorKm: number }>;
+}
+
+interface AnalyticsData {
+  series: AnalyticsSeries;
+}
 
 export default function FuelAnalysisPage() {
   const params = useParams<{ alias: string }>();
@@ -14,6 +29,11 @@ export default function FuelAnalysisPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const router = useRouter();
+
+  const { data: analyticsRaw } = useApiData<{ success: boolean; data: AnalyticsData }>(
+    alias ? `/api/vehicles/${alias}/analytics?period=6m` : null
+  );
+  const analytics = analyticsRaw?.data ?? null;
 
   useEffect(() => {
     if (alias) {
@@ -203,6 +223,52 @@ export default function FuelAnalysisPage() {
                 </div>
               </div>
             </div>
+
+            {/* Charts — Histórico 6 meses */}
+            {analytics && (
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold">
+                        Costo de combustible por mes
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <FuelBarChart data={analytics.series.costoCombustible} />
+                    </CardContent>
+                  </Card>
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold">
+                        Eficiencia histórica (km/L)
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <FuelEfficiencyLineChart data={analytics.series.eficiencia} />
+                    </CardContent>
+                  </Card>
+                </div>
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-semibold">
+                      Costo vs eficiencia por mes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <FuelComposedChart
+                      data={analytics.series.eficiencia.map((e) => {
+                        const fuel = analytics.series.costoCombustible.find(
+                          (f) => f.period === e.period
+                        );
+                        return { ...e, costo: fuel?.value ?? 0 };
+                      })}
+                    />
+                  </CardContent>
+                </Card>
+              </>
+            )}
 
             {/* Botón para ver historial */}
             <div className="text-center pt-2">

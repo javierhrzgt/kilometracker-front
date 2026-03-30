@@ -59,6 +59,14 @@
 
   /* Radius */
   --radius: 0.5rem;
+
+  /* Chart Colors */
+  --color-chart-1: hsl(239 84% 67%);
+  --color-chart-2: hsl(160 60% 45%);
+  --color-chart-3: hsl(30 80% 55%);
+  --color-chart-4: hsl(280 65% 60%);
+  --color-chart-5: hsl(10 75% 58%);
+  --color-chart-6: hsl(200 70% 50%);
 }
 
 /* Enhanced Shadow System */

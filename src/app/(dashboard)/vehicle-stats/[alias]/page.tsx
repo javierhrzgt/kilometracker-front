@@ -6,6 +6,17 @@ import type { Vehicle, VehicleStats } from "@/Types";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
 import { StatCard } from "@/components/features/stats/StatCard";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useApiData } from "@/hooks/useApiData";
+import { KmAreaChart } from "@/components/charts/KmAreaChart";
+import { MaintenanceCostBarChart } from "@/components/charts/MaintenanceCostBarChart";
+
+interface AnalyticsData {
+  series: {
+    distancia: Array<{ period: string; label: string; value: number }>;
+    costoMantenimiento: Array<{ period: string; label: string; value: number }>;
+  };
+}
 
 export default function VehicleStatsPage() {
   const params = useParams<{ alias: string }>();
@@ -15,6 +26,11 @@ export default function VehicleStatsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  const { data: analyticsRaw } = useApiData<{ success: boolean; data: AnalyticsData }>(
+    alias ? `/api/vehicles/${alias}/analytics?period=6m` : null
+  );
+  const analytics = analyticsRaw?.data ?? null;
 
   useEffect(() => {
     if (alias) {
@@ -237,6 +253,37 @@ export default function VehicleStatsPage() {
                     Costo promedio: Q {(stats.totalCostOfOwnership / stats.totalDistancia).toFixed(3)}/km
                   </p>
                 )}
+              </div>
+            )}
+
+            {/* Charts — Histórico 6 meses */}
+            {analytics && (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-semibold">
+                      Kilómetros por mes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <KmAreaChart data={analytics.series.distancia} />
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-semibold">
+                      Costo de mantenimiento por mes
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <MaintenanceCostBarChart
+                      data={analytics.series.costoMantenimiento.map((d) => ({
+                        label: d.label,
+                        value: d.value,
+                      }))}
+                    />
+                  </CardContent>
+                </Card>
               </div>
             )}
 
