@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import type { Refuel, Vehicle } from "@/Types";
+import type { Refuel, Vehicle, RefuelFilters } from "@/Types";
 import { formatDateForDisplay, getDateValue } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -20,13 +20,17 @@ import { Plus, Edit, Trash2, Check, AlertCircle } from "lucide-react";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { CardSkeleton } from "@/components/ui/card-skeleton";
 
-const tiposCombustible = ["Regular", "Super", "V-Power", "Diesel"];
+const TIPOS_COMBUSTIBLE = ["Regular", "Premium", "Diesel", "Eléctrico", "Híbrido", "V-Power"];
 
 export default function RefuelsHistory() {
   const [refuels, setRefuels] = useState<Refuel[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [filterVehicle, setFilterVehicle] = useState("");
-  const [showInactive, setShowInactive] = useState(false);
+  const [filters, setFilters] = useState<RefuelFilters>({
+    vehicleAlias: "",
+    tipoCombustible: "",
+    startDate: "",
+    endDate: "",
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingRefuel, setEditingRefuel] = useState<Refuel | null>(null);
@@ -35,8 +39,11 @@ export default function RefuelsHistory() {
 
   useEffect(() => {
     fetchVehicles();
-    fetchRefuels();
   }, []);
+
+  useEffect(() => {
+    fetchRefuels();
+  }, [filters]);
 
   const fetchVehicles = async () => {
     try {
@@ -55,7 +62,11 @@ export default function RefuelsHistory() {
     setError("");
     try {
       const params = new URLSearchParams();
-      if (filterVehicle) params.append("vehicleAlias", filterVehicle);
+      if (filters.vehicleAlias) params.append("vehicleAlias", filters.vehicleAlias);
+      if (filters.tipoCombustible) params.append("tipoCombustible", filters.tipoCombustible);
+      if (filters.startDate) params.append("startDate", filters.startDate);
+      if (filters.endDate) params.append("endDate", filters.endDate);
+
       const response = await fetch(`/api/refuels?${params.toString()}`, { credentials: "include" });
       if (!response.ok) {
         if (response.status === 401) { router.push("/"); return; }
@@ -70,9 +81,13 @@ export default function RefuelsHistory() {
     }
   };
 
-  const handleClearFilter = () => {
-    setFilterVehicle("");
-    setTimeout(() => fetchRefuels(), 0);
+  const handleFilterChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const clearFilters = () => {
+    setFilters({ vehicleAlias: "", tipoCombustible: "", startDate: "", endDate: "" });
   };
 
   const handleEdit = (refuel: Refuel) => {
@@ -113,22 +128,15 @@ export default function RefuelsHistory() {
     }
   };
 
-  const filteredRefuels = refuels.filter(r => showInactive || r.isActive !== false);
-  const totalGastado = filteredRefuels.reduce((sum, r) => sum + Number(r.cantidadGastada || 0), 0);
-  const totalGalones = filteredRefuels.reduce((sum, r) => sum + Number(r.galones || 0), 0);
-  const activeFilterCount = filterVehicle ? 1 : 0;
+  const activeFilterCount = [
+    filters.vehicleAlias,
+    filters.tipoCombustible,
+    filters.startDate,
+    filters.endDate,
+  ].filter(Boolean).length;
 
-  const inactivosToggle = (
-    <label className="flex items-center gap-2 cursor-pointer text-sm shrink-0">
-      <input
-        type="checkbox"
-        checked={showInactive}
-        onChange={(e) => setShowInactive(e.target.checked)}
-        className="w-4 h-4 rounded border-input"
-      />
-      <span className="text-muted-foreground text-xs">Inactivos</span>
-    </label>
-  );
+  const totalGastado = refuels.reduce((sum, r) => sum + Number(r.cantidadGastada || 0), 0);
+  const totalGalones = refuels.reduce((sum, r) => sum + Number(r.galones || 0), 0);
 
   return (
     <>
@@ -152,29 +160,65 @@ export default function RefuelsHistory() {
 
         <FilterPanel
           onApply={fetchRefuels}
-          onClear={handleClearFilter}
+          onClear={clearFilters}
           activeCount={activeFilterCount}
-          gridClassName="grid grid-cols-1 sm:grid-cols-2 gap-4"
-          extras={inactivosToggle}
+          gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
           <div className="space-y-2">
             <Label>Vehículo</Label>
-            <SelectNative value={filterVehicle} onChange={(e: ChangeEvent<HTMLSelectElement>) => setFilterVehicle(e.target.value)}>
+            <SelectNative
+              name="vehicleAlias"
+              value={filters.vehicleAlias}
+              onChange={handleFilterChange}
+            >
               <option value="">Todos los vehículos</option>
-              {vehicles.map((v) => <option key={v._id} value={v.alias}>{v.alias}</option>)}
+              {vehicles.map((v) => (
+                <option key={v._id} value={v.alias}>{v.alias}</option>
+              ))}
             </SelectNative>
+          </div>
+          <div className="space-y-2">
+            <Label>Tipo de Combustible</Label>
+            <SelectNative
+              name="tipoCombustible"
+              value={filters.tipoCombustible}
+              onChange={handleFilterChange}
+            >
+              <option value="">Todos</option>
+              {TIPOS_COMBUSTIBLE.map((tipo) => (
+                <option key={tipo} value={tipo}>{tipo}</option>
+              ))}
+            </SelectNative>
+          </div>
+          <div className="space-y-2">
+            <Label>Desde</Label>
+            <Input
+              type="date"
+              name="startDate"
+              value={filters.startDate}
+              onChange={handleFilterChange}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label>Hasta</Label>
+            <Input
+              type="date"
+              name="endDate"
+              value={filters.endDate}
+              onChange={handleFilterChange}
+            />
           </div>
         </FilterPanel>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <StatCard label="Recargas" value={filteredRefuels.length} size="md" />
+          <StatCard label="Recargas" value={refuels.length} size="md" />
           <StatCard label="Total Gastado" value={`Q ${totalGastado.toFixed(2)}`} size="md" accent="info" />
           <StatCard label="Total Galones" value={totalGalones.toFixed(2)} unit="gal" size="md" />
         </div>
 
         {loading ? (
           <CardSkeleton rows={6} />
-        ) : filteredRefuels.length === 0 ? (
+        ) : refuels.length === 0 ? (
           <Card>
             <CardContent className="py-16 text-center">
               <p className="text-muted-foreground">No hay recargas registradas</p>
@@ -184,19 +228,16 @@ export default function RefuelsHistory() {
           <>
             {/* Mobile card list */}
             <div className="block md:hidden space-y-3">
-              {filteredRefuels.map((refuel) => (
+              {refuels.map((refuel) => (
                 <div
                   key={refuel._id}
-                  className={cn("rounded-xl border border-border bg-card p-4", refuel.isActive === false && "opacity-60")}
+                  className={cn("rounded-xl border border-border bg-card p-4")}
                 >
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-semibold text-sm">{refuel.vehicleAlias}</span>
                         <Badge variant="secondary">{refuel.tipoCombustible}</Badge>
-                        <Badge variant={refuel.isActive === false ? "muted" : "success"}>
-                          {refuel.isActive === false ? "Inactivo" : "Activo"}
-                        </Badge>
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{formatDateForDisplay(refuel.fecha)}</p>
                     </div>
@@ -234,24 +275,18 @@ export default function RefuelsHistory() {
                       <TableHead>Monto</TableHead>
                       <TableHead>Galones</TableHead>
                       <TableHead>Precio/Gal</TableHead>
-                      <TableHead>Estado</TableHead>
                       <TableHead className="text-right">Acciones</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredRefuels.map((refuel) => (
-                      <TableRow key={refuel._id} className={refuel.isActive === false ? "opacity-60" : ""}>
+                    {refuels.map((refuel) => (
+                      <TableRow key={refuel._id}>
                         <TableCell className="font-medium">{refuel.vehicleAlias}</TableCell>
                         <TableCell>{formatDateForDisplay(refuel.fecha)}</TableCell>
                         <TableCell>{refuel.tipoCombustible}</TableCell>
                         <TableCell>Q {Number(refuel.cantidadGastada).toFixed(2)}</TableCell>
                         <TableCell>{refuel.galones ? Number(refuel.galones).toFixed(2) : "N/A"}</TableCell>
                         <TableCell>{refuel.precioPorGalon ? `Q ${Number(refuel.precioPorGalon).toFixed(2)}` : "N/A"}</TableCell>
-                        <TableCell>
-                          <Badge variant={refuel.isActive === false ? "muted" : "success"}>
-                            {refuel.isActive === false ? "Inactivo" : "Activo"}
-                          </Badge>
-                        </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button variant="ghost" size="sm" onClick={() => handleEdit(refuel)}>
@@ -282,30 +317,46 @@ export default function RefuelsHistory() {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label>Tipo de Combustible</Label>
-                <SelectNative value={editingRefuel.tipoCombustible}
-                  onChange={(e) => setEditingRefuel({ ...editingRefuel, tipoCombustible: e.target.value })}>
-                  {tiposCombustible.map((tipo) => <option key={tipo} value={tipo}>{tipo}</option>)}
+                <SelectNative
+                  value={editingRefuel.tipoCombustible}
+                  onChange={(e) => setEditingRefuel({ ...editingRefuel, tipoCombustible: e.target.value })}
+                >
+                  {TIPOS_COMBUSTIBLE.map((tipo) => (
+                    <option key={tipo} value={tipo}>{tipo}</option>
+                  ))}
                 </SelectNative>
               </div>
               <div className="space-y-2">
                 <Label>Monto (Q)</Label>
-                <Input type="number" value={editingRefuel.cantidadGastada}
-                  onChange={(e) => setEditingRefuel({ ...editingRefuel, cantidadGastada: e.target.value as any })} />
+                <Input
+                  type="number"
+                  value={editingRefuel.cantidadGastada}
+                  onChange={(e) => setEditingRefuel({ ...editingRefuel, cantidadGastada: e.target.value as any })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Galones</Label>
-                <Input type="number" value={editingRefuel.galones || ""}
-                  onChange={(e) => setEditingRefuel({ ...editingRefuel, galones: e.target.value as any })} />
+                <Input
+                  type="number"
+                  value={editingRefuel.galones || ""}
+                  onChange={(e) => setEditingRefuel({ ...editingRefuel, galones: e.target.value as any })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Fecha</Label>
-                <Input type="date" value={editingRefuel.fecha}
-                  onChange={(e) => setEditingRefuel({ ...editingRefuel, fecha: e.target.value })} />
+                <Input
+                  type="date"
+                  value={editingRefuel.fecha}
+                  onChange={(e) => setEditingRefuel({ ...editingRefuel, fecha: e.target.value })}
+                />
               </div>
               <div className="space-y-2">
                 <Label>Notas</Label>
-                <Input type="text" value={editingRefuel.notasAdicionales || ""}
-                  onChange={(e) => setEditingRefuel({ ...editingRefuel, notasAdicionales: e.target.value })} />
+                <Input
+                  type="text"
+                  value={editingRefuel.notasAdicionales || ""}
+                  onChange={(e) => setEditingRefuel({ ...editingRefuel, notasAdicionales: e.target.value })}
+                />
               </div>
             </div>
           )}

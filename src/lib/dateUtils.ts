@@ -145,3 +145,51 @@ export function getDaysUntilDate(targetDateString: string): number {
 
   return diffDays;
 }
+
+/**
+ * Returns an array of every YYYY-MM-DD date string from startDate to endDate inclusive.
+ * Uses Date.UTC to prevent timezone shifting across month/year boundaries.
+ *
+ * @param startDate - Start date in YYYY-MM-DD format
+ * @param endDate   - End date in YYYY-MM-DD format (must be >= startDate)
+ * @returns Array of YYYY-MM-DD strings
+ */
+export function getDatesBetween(startDate: string, endDate: string): string[] {
+  const [sy, sm, sd] = startDate.split('-').map(Number);
+  const [ey, em, ed] = endDate.split('-').map(Number);
+
+  const start = Date.UTC(sy, sm - 1, sd);
+  const end = Date.UTC(ey, em - 1, ed);
+  const MS_PER_DAY = 86400000;
+  const dates: string[] = [];
+
+  for (let ts = start; ts <= end; ts += MS_PER_DAY) {
+    const d = new Date(ts);
+    const year = d.getUTCFullYear();
+    const month = String(d.getUTCMonth() + 1).padStart(2, '0');
+    const day = String(d.getUTCDate()).padStart(2, '0');
+    dates.push(`${year}-${month}-${day}`);
+  }
+
+  return dates;
+}
+
+/**
+ * Splits a total distance equally across N days.
+ * Each value is rounded to 1 decimal place.
+ * The last element absorbs any rounding remainder so the sum equals total exactly.
+ *
+ * @param total - Total distance to distribute
+ * @param days  - Number of days to split across
+ * @returns Array of per-day distances (length === days)
+ */
+export function splitDistanceEqually(total: number, days: number): number[] {
+  if (days <= 0) return [];
+  if (days === 1) return [total];
+
+  const perDay = Math.round((total / days) * 10) / 10;
+  const result = Array(days - 1).fill(perDay);
+  const last = Math.round((total - perDay * (days - 1)) * 10) / 10;
+  result.push(last);
+  return result;
+}

@@ -4,15 +4,9 @@ import { bffFetch } from '@/lib/backendFetch';
 // GET /api/refuels - Listar reabastecimientos
 export async function GET(request) {
   try {
-    // Obtener query params
     const { searchParams } = new URL(request.url);
-    const vehicleAlias = searchParams.get('vehicleAlias');
-
-    // Construir URL con filtros
-    const params = new URLSearchParams();
-    if (vehicleAlias) params.append('vehicleAlias', vehicleAlias);
-
-    const path = `/api/refuels${params.toString() ? '?' + params.toString() : ''}`;
+    const queryString = searchParams.toString();
+    const path = `/api/refuels${queryString ? `?${queryString}` : ''}`;
 
     const response = await bffFetch(path);
 
