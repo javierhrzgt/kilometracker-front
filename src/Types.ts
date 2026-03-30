@@ -304,6 +304,13 @@ export interface UpcomingMaintenance {
   proximoServicioKm?: number;
 }
 
+export interface RefuelFilters {
+  vehicleAlias: string;
+  tipoCombustible: string;
+  startDate: string;
+  endDate: string;
+}
+
 export interface MaintenanceFilters {
   vehicleAlias: string;
   tipo: string;

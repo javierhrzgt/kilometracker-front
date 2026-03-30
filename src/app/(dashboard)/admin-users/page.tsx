@@ -228,6 +228,13 @@ export default function AdminUsers() {
     setPermanentDeleteModal({ userId, username, step: "warning" });
   };
 
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const canManageUser = (targetUser: User): boolean => {
+    if (isRoot) return true;
+    // admin can only manage write and read users
+    return targetUser.role !== 'root' && targetUser.role !== 'admin';
+  };
+
   // ── Derived stats ──────────────────────────────────────────────────────────
   const totalUsers    = users.length;
   const activeUsers   = users.filter((u) => u.isActive).length;
@@ -337,7 +344,7 @@ export default function AdminUsers() {
                       {formatDateForDisplay(user.createdAt)}
                     </TableCell>
                     <TableCell>
-                      {user._id !== currentUser._id && (
+                      {user._id !== currentUser._id && canManageUser(user) && (
                         <>
                           {/* ── Mobile: Sheet (bottom) ─────────────────── */}
                           <div className="md:hidden">
