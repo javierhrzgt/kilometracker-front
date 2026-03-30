@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/vehicles/:alias/fuel-efficiency - Get fuel efficiency metrics
 export async function GET(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const { alias } = await params;
 
     // Get query params for date range filtering
@@ -25,18 +15,12 @@ export async function GET(request, { params }) {
     if (startDate) queryParams.append('startDate', startDate);
     if (endDate) queryParams.append('endDate', endDate);
 
-    const url = `${process.env.API_BASE_URL}/api/vehicles/${alias}/fuel-efficiency${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    const path = `/api/vehicles/${alias}/fuel-efficiency${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
 
-    console.log('Obteniendo eficiencia de combustible:', url);
-
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(path);
 
     if (!response.ok) {
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       return NextResponse.json(
         { error: data.message || 'Error al obtener eficiencia de combustible' },
         { status: response.status }
@@ -49,7 +33,7 @@ export async function GET(request, { params }) {
   } catch (error) {
     console.error('Error en GET fuel efficiency:', error);
     return NextResponse.json(
-      { error: 'Error al obtener eficiencia de combustible: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

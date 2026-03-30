@@ -114,6 +114,18 @@ export default function Home() {
                 {loading ? "Cargando..." : "Iniciar sesión"}
               </Button>
 
+              {/* Forgot Password Link */}
+              <div className="text-center">
+                <Button
+                  type="button"
+                  variant="link"
+                  onClick={() => router.push("/forgot-password")}
+                  className="p-0 h-auto text-sm text-muted-foreground hover:text-foreground"
+                >
+                  ¿Olvidaste tu contraseña?
+                </Button>
+              </div>
+
               {/* Register Link */}
               <div className="text-center text-sm text-muted-foreground">
                 ¿No tienes cuenta?{" "}

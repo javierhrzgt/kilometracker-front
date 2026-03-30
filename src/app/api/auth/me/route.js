@@ -1,28 +1,16 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 export async function GET() {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
-    console.log('Obteniendo perfil de usuario');
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/auth/me`, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch('/api/auth/me');
 
     if (!response.ok) {
-      throw new Error('Error al obtener perfil');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener perfil' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -31,7 +19,7 @@ export async function GET() {
   } catch (error) {
     console.error('Error en GET me:', error);
     return NextResponse.json(
-      { error: 'Error al obtener perfil: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

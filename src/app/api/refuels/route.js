@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/refuels - Listar reabastecimientos
 export async function GET(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     // Obtener query params
     const { searchParams } = new URL(request.url);
     const vehicleAlias = searchParams.get('vehicleAlias');
@@ -22,17 +12,16 @@ export async function GET(request) {
     const params = new URLSearchParams();
     if (vehicleAlias) params.append('vehicleAlias', vehicleAlias);
 
-    const url = `${process.env.API_BASE_URL}/api/refuels${params.toString() ? '?' + params.toString() : ''}`;
-    console.log('Obteniendo reabastecimientos:', url);
+    const path = `/api/refuels${params.toString() ? '?' + params.toString() : ''}`;
 
-    const response = await fetch(url, {
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
+    const response = await bffFetch(path);
 
     if (!response.ok) {
-      throw new Error('Error al obtener reabastecimientos');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener reabastecimientos' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -41,7 +30,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error en GET refuels:', error);
     return NextResponse.json(
-      { error: 'Error al obtener reabastecimientos: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -50,19 +39,7 @@ export async function GET(request) {
 // POST /api/refuels - Crear reabastecimiento
 export async function POST(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-    
-    console.log('Creando reabastecimiento:', body);
 
     // Validación básica
     if (!body.vehicleAlias || !body.tipoCombustible || !body.cantidadGastada) {
@@ -72,12 +49,8 @@ export async function POST(request) {
       );
     }
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/refuels`, {
+    const response = await bffFetch('/api/refuels', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
 
@@ -90,14 +63,12 @@ export async function POST(request) {
       );
     }
 
-    console.log('Reabastecimiento creado exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en POST refuels:', error);
     return NextResponse.json(
-      { error: 'Error al crear el reabastecimiento: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

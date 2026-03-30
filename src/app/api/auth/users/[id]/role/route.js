@@ -1,29 +1,13 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 export async function PUT(request, { params }) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const { id } = await params;
     const body = await request.json();
-    
-    console.log('Cambiando rol de usuario:', id);
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/auth/users/${id}/role`, {
+    const response = await bffFetch(`/api/auth/users/${id}/role`, {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
 
@@ -36,14 +20,12 @@ export async function PUT(request, { params }) {
       );
     }
 
-    console.log('Rol actualizado exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en change role:', error);
     return NextResponse.json(
-      { error: 'Error al cambiar rol: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

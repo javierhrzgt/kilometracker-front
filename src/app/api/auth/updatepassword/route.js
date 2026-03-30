@@ -1,22 +1,10 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // PUT /api/auth/updatepassword - Change password
 export async function PUT(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
-
-    console.log('Cambiando contraseña');
 
     // Validation
     if (!body.currentPassword || !body.newPassword) {
@@ -33,12 +21,8 @@ export async function PUT(request) {
       );
     }
 
-    const response = await fetch(`${process.env.API_BASE_URL}/api/auth/updatepassword`, {
+    const response = await bffFetch('/api/auth/updatepassword', {
       method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
 
@@ -51,14 +35,12 @@ export async function PUT(request) {
       );
     }
 
-    console.log('Contraseña actualizada exitosamente');
-
     return NextResponse.json(data);
 
   } catch (error) {
     console.error('Error en updatepassword:', error);
     return NextResponse.json(
-      { error: 'Error al cambiar contraseña: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }

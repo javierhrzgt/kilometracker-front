@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { cookies } from 'next/headers';
+import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/maintenance - List all maintenance records (no soft delete, all records are active)
 export async function GET(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const { searchParams } = new URL(request.url);
 
     // Remove isActive filter as maintenance uses permanent delete
@@ -21,19 +11,16 @@ export async function GET(request) {
 
     const queryString = searchParams.toString();
 
-    console.log('Obteniendo mantenimientos con filtros:', queryString);
-
-    const response = await fetch(
-      `${process.env.API_BASE_URL}/api/maintenance${queryString ? `?${queryString}` : ''}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
+    const response = await bffFetch(
+      `/api/maintenance${queryString ? `?${queryString}` : ''}`
     );
 
     if (!response.ok) {
-      throw new Error('Error al obtener mantenimientos');
+      const errorData = await response.json().catch(() => ({}));
+      return NextResponse.json(
+        { error: errorData.error || 'Error al obtener mantenimientos' },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
@@ -42,7 +29,7 @@ export async function GET(request) {
   } catch (error) {
     console.error('Error en GET maintenance:', error);
     return NextResponse.json(
-      { error: 'Error al obtener mantenimientos: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
@@ -51,26 +38,10 @@ export async function GET(request) {
 // POST /api/maintenance - Create new maintenance record
 export async function POST(request) {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get('token')?.value;
-
-    if (!token) {
-      return NextResponse.json(
-        { error: 'No autorizado' },
-        { status: 401 }
-      );
-    }
-
     const body = await request.json();
 
-    console.log('Creando mantenimiento:', body);
-
-    const response = await fetch(`${process.env.API_BASE_URL}/api/maintenance`, {
+    const response = await bffFetch('/api/maintenance', {
       method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'Content-Type': 'application/json',
-      },
       body: JSON.stringify(body),
     });
 
@@ -83,14 +54,12 @@ export async function POST(request) {
       );
     }
 
-    console.log('Mantenimiento creado exitosamente');
-
     return NextResponse.json(data, { status: 201 });
 
   } catch (error) {
     console.error('Error en POST maintenance:', error);
     return NextResponse.json(
-      { error: 'Error al crear el mantenimiento: ' + error.message },
+      { error: 'Error interno del servidor' },
       { status: 500 }
     );
   }
