@@ -6,10 +6,14 @@ import type { FuelAnalysis } from "@/Types";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { CardSkeleton } from "@/components/ui/card-skeleton";
 import { useApiData } from "@/hooks/useApiData";
 import { FuelBarChart } from "@/components/charts/FuelBarChart";
 import { FuelEfficiencyLineChart } from "@/components/charts/FuelEfficiencyLineChart";
 import { FuelComposedChart } from "@/components/charts/FuelComposedChart";
+import { EmptyState } from "@/components/ui/empty-state";
+import { Fuel } from "lucide-react";
 
 interface AnalyticsSeries {
   distancia: Array<{ period: string; label: string; value: number }>;
@@ -62,9 +66,14 @@ export default function FuelAnalysisPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center">
-        <div className="text-muted-foreground">Cargando...</div>
-      </div>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
+          ))}
+        </div>
+        <CardSkeleton rows={5} />
+      </main>
     );
   }
 
@@ -272,20 +281,21 @@ export default function FuelAnalysisPage() {
 
             {/* Botón para ver historial */}
             <div className="text-center pt-2">
-              <button
-                onClick={() => router.push("/refuels-history")}
-                className="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg shadow-sm hover:shadow-depth-2 transition-smooth font-medium"
-              >
+              <Button onClick={() => router.push("/refuels-history")}>
                 Ver historial de recargas
-              </button>
+              </Button>
             </div>
           </div>
         ) : (
-          <div className="text-center py-16 border border-border rounded-lg bg-card">
-            <p className="text-muted-foreground">
-              No hay datos de análisis disponibles
-            </p>
-          </div>
+          <EmptyState
+            icon={<Fuel className="h-12 w-12" />}
+            title="Sin recargas registradas"
+            description="Agrega recargas de combustible para calcular tu eficiencia en km/litro y conocer el costo por kilómetro."
+            action={{
+              label: "Registrar recarga",
+              onClick: () => router.push("/add-refuel"),
+            }}
+          />
         )}
       </main>
     </>

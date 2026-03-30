@@ -8,6 +8,7 @@ interface UserContextType {
   isLoading: boolean;
   error: string | null;
   isAdmin: boolean;
+  isRoot: boolean;
   isAuthenticated: boolean;
   refreshUser: () => Promise<void>;
 }
@@ -60,7 +61,8 @@ export function UserProvider({ children }: { children: ReactNode }) {
   };
 
   // Computed properties
-  const isAdmin = user?.role === "admin";
+  const isAdmin = user?.role === "admin" || user?.role === "root";
+  const isRoot = user?.role === "root";
   const isAuthenticated = user !== null;
 
   return (
@@ -70,6 +72,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         isLoading,
         error,
         isAdmin,
+        isRoot,
         isAuthenticated,
         refreshUser,
       }}

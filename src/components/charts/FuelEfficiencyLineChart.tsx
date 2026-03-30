@@ -10,6 +10,7 @@ import {
   ReferenceLine,
   ResponsiveContainer,
 } from "recharts";
+import { useChartColors } from "@/hooks/useChartColors";
 
 interface EficienciaPoint {
   period: string;
@@ -23,6 +24,8 @@ interface FuelEfficiencyLineChartProps {
 }
 
 export function FuelEfficiencyLineChart({ data }: FuelEfficiencyLineChartProps) {
+  const c = useChartColors();
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
@@ -31,21 +34,20 @@ export function FuelEfficiencyLineChart({ data }: FuelEfficiencyLineChartProps) 
     );
   }
 
-  const avg =
-    data.reduce((sum, d) => sum + d.kmPorLitro, 0) / data.length;
+  const avg = data.reduce((sum, d) => sum + d.kmPorLitro, 0) / data.length;
 
   return (
     <ResponsiveContainer width="100%" height={220}>
       <LineChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(214.3 31.8% 91.4%)" />
+        <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
         <XAxis
           dataKey="label"
-          tick={{ fontSize: 11, fill: "hsl(215.4 16.3% 46.9%)" }}
+          tick={{ fontSize: 11, fill: c.tick }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "hsl(215.4 16.3% 46.9%)" }}
+          tick={{ fontSize: 11, fill: c.tick }}
           axisLine={false}
           tickLine={false}
           width={45}
@@ -53,8 +55,8 @@ export function FuelEfficiencyLineChart({ data }: FuelEfficiencyLineChartProps) 
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "hsl(0 0% 100%)",
-            border: "1px solid hsl(214.3 31.8% 91.4%)",
+            backgroundColor: c.tooltipBg,
+            border: `1px solid ${c.tooltipBorder}`,
             borderRadius: "8px",
             fontSize: 12,
           }}
@@ -62,16 +64,16 @@ export function FuelEfficiencyLineChart({ data }: FuelEfficiencyLineChartProps) 
         />
         <ReferenceLine
           y={parseFloat(avg.toFixed(2))}
-          stroke="hsl(38 92% 50%)"
+          stroke={c.chart3}
           strokeDasharray="4 3"
-          label={{ value: `Prom: ${avg.toFixed(1)}`, fill: "hsl(38 92% 50%)", fontSize: 10 }}
+          label={{ value: `Prom: ${avg.toFixed(1)}`, fill: c.chart3, fontSize: 10 }}
         />
         <Line
           type="monotone"
           dataKey="kmPorLitro"
-          stroke="hsl(239 84% 67%)"
+          stroke={c.chart1}
           strokeWidth={2}
-          dot={{ r: 3, fill: "hsl(239 84% 67%)" }}
+          dot={{ r: 3, fill: c.chart1 }}
           activeDot={{ r: 5 }}
         />
       </LineChart>

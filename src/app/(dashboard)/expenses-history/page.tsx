@@ -5,7 +5,7 @@ import { Expense, Vehicle, ExpenseFilters } from "@/Types";
 import { useRouter } from "next/navigation";
 import { formatDateForDisplay } from "@/lib/dateUtils";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,29 +14,22 @@ import { SelectNative } from "@/components/ui/select-native";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Filter, Plus, Edit, Trash2, X, AlertCircle } from "lucide-react";
+import { FilterPanel } from "@/components/ui/FilterPanel";
+import { Plus, Edit, Trash2, AlertCircle, Receipt } from "lucide-react";
+import { EmptyState } from "@/components/ui/empty-state";
+import { StatCard } from "@/components/features/stats/StatCard";
+import { CardSkeleton } from "@/components/ui/card-skeleton";
 
 const EXPENSE_CATEGORIES = [
-  "Seguro",
-  "Impuestos",
-  "Registro",
-  "Estacionamiento",
-  "Peajes",
-  "Lavado",
-  "Multas",
-  "Financiamiento",
-  "Otro",
+  "Seguro", "Impuestos", "Registro", "Estacionamiento",
+  "Peajes", "Lavado", "Multas", "Financiamiento", "Otro",
 ];
 
 export default function ExpensesHistory() {
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filters, setFilters] = useState<ExpenseFilters>({
-    vehicleAlias: "",
-    categoria: "",
-    startDate: "",
-    endDate: "",
-    esDeducibleImpuestos: "",
+    vehicleAlias: "", categoria: "", startDate: "", endDate: "", esDeducibleImpuestos: "",
   });
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
@@ -50,10 +43,7 @@ export default function ExpensesHistory() {
 
   const fetchVehicles = async () => {
     try {
-      const response = await fetch("/api/vehicles", {
-        credentials: "include",
-      });
-
+      const response = await fetch("/api/vehicles", { credentials: "include" });
       if (response.ok) {
         const data = await response.json();
         setVehicles(data.data || []);
@@ -74,20 +64,13 @@ export default function ExpensesHistory() {
       if (filters.esDeducibleImpuestos) params.append("esDeducibleImpuestos", filters.esDeducibleImpuestos);
 
       const url = `/api/expenses${params.toString() ? "?" + params.toString() : ""}`;
-
-      const response = await fetch(url, {
-        credentials: "include",
-      });
+      const response = await fetch(url, { credentials: "include" });
 
       if (!response.ok) {
-        if (response.status === 401) {
-          router.push("/");
-          return;
-        }
+        if (response.status === 401) { router.push("/"); return; }
         const data = await response.json();
         throw new Error(data.error || "Error al cargar gastos");
       }
-
       const data = await response.json();
       setExpenses(data.data || []);
     } catch (err) {
@@ -102,32 +85,15 @@ export default function ExpensesHistory() {
     setFilters((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleApplyFilters = () => {
-    fetchExpenses();
-  };
-
   const handleClearFilters = () => {
-    setFilters({
-      vehicleAlias: "",
-      categoria: "",
-      startDate: "",
-      endDate: "",
-      esDeducibleImpuestos: "",
-    });
+    setFilters({ vehicleAlias: "", categoria: "", startDate: "", endDate: "", esDeducibleImpuestos: "" });
     setTimeout(() => fetchExpenses(), 0);
   };
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`/api/expenses/${id}`, {
-        method: "DELETE",
-        credentials: "include",
-      });
-
-      if (!response.ok) {
-        throw new Error("Error al eliminar el gasto");
-      }
-
+      const response = await fetch(`/api/expenses/${id}`, { method: "DELETE", credentials: "include" });
+      if (!response.ok) throw new Error("Error al eliminar el gasto");
       setDeleteConfirm(null);
       fetchExpenses();
     } catch (err) {
@@ -135,10 +101,11 @@ export default function ExpensesHistory() {
     }
   };
 
-  const totalMonto = expenses.reduce((sum, expense) => sum + expense.monto, 0);
-  const taxDeductibleTotal = expenses
-    .filter((e) => e.esDeducibleImpuestos)
-    .reduce((sum, expense) => sum + expense.monto, 0);
+  const totalMonto = expenses.reduce((sum, e) => sum + e.monto, 0);
+  const taxDeductibleTotal = expenses.filter((e) => e.esDeducibleImpuestos).reduce((sum, e) => sum + e.monto, 0);
+  const activeFilterCount = [
+    filters.vehicleAlias, filters.categoria, filters.startDate, filters.endDate, filters.esDeducibleImpuestos,
+  ].filter(Boolean).length;
 
   return (
     <>
@@ -147,13 +114,12 @@ export default function ExpensesHistory() {
         actions={
           <Button onClick={() => router.push("/add-expense")}>
             <Plus className="h-4 w-4 mr-2" />
-            Nuevo Gasto
+            Agregar Gasto
           </Button>
         }
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        {/* Error Message */}
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
@@ -161,214 +127,155 @@ export default function ExpensesHistory() {
           </Alert>
         )}
 
-        {/* Filters */}
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="text-base">Filtros</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="vehicleAlias">Vehículo</Label>
-                <SelectNative
-                  id="vehicleAlias"
-                  name="vehicleAlias"
-                  value={filters.vehicleAlias}
-                  onChange={handleFilterChange}
-                >
-                  <option value="">Todos</option>
-                  {vehicles.map((vehicle) => (
-                    <option key={vehicle._id} value={vehicle.alias}>
-                      {vehicle.alias}
-                    </option>
-                  ))}
-                </SelectNative>
-              </div>
+        <FilterPanel
+          onApply={fetchExpenses}
+          onClear={handleClearFilters}
+          activeCount={activeFilterCount}
+          gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
+        >
+          <div className="space-y-2">
+            <Label>Vehículo</Label>
+            <SelectNative name="vehicleAlias" value={filters.vehicleAlias} onChange={handleFilterChange}>
+              <option value="">Todos</option>
+              {vehicles.map((v) => <option key={v._id} value={v.alias}>{v.alias}</option>)}
+            </SelectNative>
+          </div>
+          <div className="space-y-2">
+            <Label>Categoría</Label>
+            <SelectNative name="categoria" value={filters.categoria} onChange={handleFilterChange}>
+              <option value="">Todas</option>
+              {EXPENSE_CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
+            </SelectNative>
+          </div>
+          <div className="space-y-2">
+            <Label>Deducible</Label>
+            <SelectNative name="esDeducibleImpuestos" value={filters.esDeducibleImpuestos} onChange={handleFilterChange}>
+              <option value="">Todos</option>
+              <option value="true">Sí</option>
+              <option value="false">No</option>
+            </SelectNative>
+          </div>
+          <div className="space-y-2">
+            <Label>Fecha inicio</Label>
+            <Input type="date" name="startDate" value={filters.startDate} onChange={handleFilterChange} />
+          </div>
+          <div className="space-y-2">
+            <Label>Fecha fin</Label>
+            <Input type="date" name="endDate" value={filters.endDate} onChange={handleFilterChange} />
+          </div>
+        </FilterPanel>
 
-              <div className="space-y-2">
-                <Label htmlFor="categoria">Categoría</Label>
-                <SelectNative
-                  id="categoria"
-                  name="categoria"
-                  value={filters.categoria}
-                  onChange={handleFilterChange}
-                >
-                  <option value="">Todas</option>
-                  {EXPENSE_CATEGORIES.map((cat) => (
-                    <option key={cat} value={cat}>
-                      {cat}
-                    </option>
-                  ))}
-                </SelectNative>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Fecha inicio</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  name="startDate"
-                  value={filters.startDate}
-                  onChange={handleFilterChange}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="endDate">Fecha fin</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  name="endDate"
-                  value={filters.endDate}
-                  onChange={handleFilterChange}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="esDeducibleImpuestos">Deducible</Label>
-                <SelectNative
-                  id="esDeducibleImpuestos"
-                  name="esDeducibleImpuestos"
-                  value={filters.esDeducibleImpuestos}
-                  onChange={handleFilterChange}
-                >
-                  <option value="">Todos</option>
-                  <option value="true">Sí</option>
-                  <option value="false">No</option>
-                </SelectNative>
-              </div>
-
-              <div className="space-y-2 flex flex-col justify-end">
-                <div className="flex gap-2">
-                  <Button onClick={handleApplyFilters} className="flex-1">
-                    <Filter className="h-4 w-4 mr-2" />
-                    Aplicar
-                  </Button>
-                  <Button onClick={handleClearFilters} variant="outline" className="flex-1">
-                    <X className="h-4 w-4 mr-2" />
-                    Limpiar
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground mb-1">Total Gastos</p>
-              <p className="text-3xl font-light">
-                Q {totalMonto.toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground mb-1">Deducibles</p>
-              <p className="text-3xl font-light text-green-600">
-                Q {taxDeductibleTotal.toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="pt-6">
-              <p className="text-sm text-muted-foreground mb-1">Cantidad</p>
-              <p className="text-3xl font-light">
-                <Badge variant="secondary" className="text-xl px-3 py-1">
-                  {expenses.length}
-                </Badge>
-              </p>
-            </CardContent>
-          </Card>
+          <StatCard label="Total Gastos" value={`Q ${totalMonto.toFixed(2)}`} size="md" />
+          <StatCard label="Deducibles" value={`Q ${taxDeductibleTotal.toFixed(2)}`} size="md" accent="success" />
+          <StatCard label="Cantidad" value={expenses.length} size="md" />
         </div>
 
-        {/* Table */}
         {loading ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <p className="text-muted-foreground">Cargando...</p>
-            </CardContent>
-          </Card>
+          <CardSkeleton rows={6} />
         ) : expenses.length === 0 ? (
-          <Card>
-            <CardContent className="py-16 text-center">
-              <p className="text-muted-foreground">No se encontraron gastos</p>
-            </CardContent>
-          </Card>
+          <EmptyState
+            icon={<Receipt className="h-12 w-12" />}
+            title="Sin gastos registrados"
+            description="Registra seguros, impuestos, estacionamiento y otros gastos para conocer el costo total de tus vehículos."
+            action={{ label: "Registrar gasto", onClick: () => router.push("/add-expense") }}
+          />
         ) : (
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Fecha</TableHead>
-                  <TableHead>Vehículo</TableHead>
-                  <TableHead>Categoría</TableHead>
-                  <TableHead>Descripción</TableHead>
-                  <TableHead>Monto</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {expenses.map((expense) => (
-                  <TableRow key={expense._id}>
-                    <TableCell>{formatDateForDisplay(expense.fecha)}</TableCell>
-                    <TableCell className="font-medium">{expense.vehicleAlias}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{expense.categoria}</Badge>
-                    </TableCell>
-                    <TableCell className="max-w-xs truncate">
-                      {expense.descripcion}
-                    </TableCell>
-                    <TableCell className="font-medium">Q {expense.monto.toFixed(2)}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        {expense.esRecurrente && (
-                          <Badge variant="secondary" className="text-xs">
-                            {expense.frecuenciaRecurrencia}
-                          </Badge>
-                        )}
-                        {expense.esDeducibleImpuestos && (
-                          <Badge className="text-xs bg-green-100 text-green-800 hover:bg-green-100">
-                            Deducible
-                          </Badge>
-                        )}
+          <>
+            {/* Mobile card list */}
+            <div className="block md:hidden space-y-3">
+              {expenses.map((expense) => (
+                <div key={expense._id} className="rounded-xl border border-border bg-card p-4">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-semibold text-sm">{expense.vehicleAlias}</span>
+                        <Badge variant="info">{expense.categoria}</Badge>
+                        {expense.esDeducibleImpuestos && <Badge variant="success">Deducible</Badge>}
                       </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => router.push(`/edit-expense/${expense._id}`)}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setDeleteConfirm(expense._id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+                      <p className="text-xs text-muted-foreground mt-0.5">{formatDateForDisplay(expense.fecha)}</p>
+                    </div>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-8 w-8"
+                        onClick={() => router.push(`/edit-expense/${expense._id}`)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8"
+                        onClick={() => setDeleteConfirm(expense._id)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="mt-2">
+                    <p className="text-xl font-bold text-foreground">Q {expense.monto.toFixed(2)}</p>
+                    {expense.descripcion && (
+                      <p className="text-xs text-muted-foreground mt-0.5 truncate">{expense.descripcion}</p>
+                    )}
+                    {expense.esRecurrente && (
+                      <Badge variant="secondary" className="text-xs mt-1">{expense.frecuenciaRecurrencia}</Badge>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block">
+              <Card>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Vehículo</TableHead>
+                      <TableHead>Categoría</TableHead>
+                      <TableHead>Descripción</TableHead>
+                      <TableHead>Monto</TableHead>
+                      <TableHead>Tipo</TableHead>
+                      <TableHead className="text-right">Acciones</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {expenses.map((expense) => (
+                      <TableRow key={expense._id}>
+                        <TableCell>{formatDateForDisplay(expense.fecha)}</TableCell>
+                        <TableCell className="font-medium">{expense.vehicleAlias}</TableCell>
+                        <TableCell><Badge variant="info">{expense.categoria}</Badge></TableCell>
+                        <TableCell className="max-w-xs truncate">{expense.descripcion}</TableCell>
+                        <TableCell className="font-medium">Q {expense.monto.toFixed(2)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            {expense.esRecurrente && (
+                              <Badge variant="secondary" className="text-xs">{expense.frecuenciaRecurrencia}</Badge>
+                            )}
+                            {expense.esDeducibleImpuestos && (
+                              <Badge variant="success" className="text-xs">Deducible</Badge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button variant="ghost" size="sm" onClick={() => router.push(`/edit-expense/${expense._id}`)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => setDeleteConfirm(expense._id)}>
+                              <Trash2 className="h-4 w-4 text-destructive" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            </div>
+          </>
         )}
       </main>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Dialog */}
       <Dialog open={!!deleteConfirm} onOpenChange={(open) => !open && setDeleteConfirm(null)}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirmar eliminación</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Confirmar eliminación</DialogTitle></DialogHeader>
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
@@ -376,15 +283,9 @@ export default function ExpensesHistory() {
             </AlertDescription>
           </Alert>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>
-              Cancelar
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={() => deleteConfirm && handleDelete(deleteConfirm)}
-            >
-              <Trash2 className="h-4 w-4 mr-2" />
-              Eliminar
+            <Button variant="outline" onClick={() => setDeleteConfirm(null)}>Cancelar</Button>
+            <Button variant="destructive" onClick={() => deleteConfirm && handleDelete(deleteConfirm)}>
+              <Trash2 className="h-4 w-4 mr-2" />Eliminar
             </Button>
           </DialogFooter>
         </DialogContent>

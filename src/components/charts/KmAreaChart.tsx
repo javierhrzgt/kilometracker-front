@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useChartColors } from "@/hooks/useChartColors";
 
 interface DataPoint {
   period: string;
@@ -21,6 +22,8 @@ interface KmAreaChartProps {
 }
 
 export function KmAreaChart({ data }: KmAreaChartProps) {
+  const c = useChartColors();
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
@@ -34,19 +37,19 @@ export function KmAreaChart({ data }: KmAreaChartProps) {
       <AreaChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
         <defs>
           <linearGradient id="kmGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="hsl(239 84% 67%)" stopOpacity={0.25} />
-            <stop offset="95%" stopColor="hsl(239 84% 67%)" stopOpacity={0} />
+            <stop offset="5%" stopColor={c.chart1} stopOpacity={0.25} />
+            <stop offset="95%" stopColor={c.chart1} stopOpacity={0} />
           </linearGradient>
         </defs>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(214.3 31.8% 91.4%)" />
+        <CartesianGrid strokeDasharray="3 3" stroke={c.grid} />
         <XAxis
           dataKey="label"
-          tick={{ fontSize: 11, fill: "hsl(215.4 16.3% 46.9%)" }}
+          tick={{ fontSize: 11, fill: c.tick }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "hsl(215.4 16.3% 46.9%)" }}
+          tick={{ fontSize: 11, fill: c.tick }}
           axisLine={false}
           tickLine={false}
           width={45}
@@ -54,8 +57,8 @@ export function KmAreaChart({ data }: KmAreaChartProps) {
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "hsl(0 0% 100%)",
-            border: "1px solid hsl(214.3 31.8% 91.4%)",
+            backgroundColor: c.tooltipBg,
+            border: `1px solid ${c.tooltipBorder}`,
             borderRadius: "8px",
             fontSize: 12,
           }}
@@ -65,10 +68,10 @@ export function KmAreaChart({ data }: KmAreaChartProps) {
         <Area
           type="monotone"
           dataKey="value"
-          stroke="hsl(239 84% 67%)"
+          stroke={c.chart1}
           strokeWidth={2}
           fill="url(#kmGradient)"
-          dot={{ r: 3, fill: "hsl(239 84% 67%)" }}
+          dot={{ r: 3, fill: c.chart1 }}
           activeDot={{ r: 5 }}
         />
       </AreaChart>
