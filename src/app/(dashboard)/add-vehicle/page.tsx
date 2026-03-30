@@ -1,40 +1,56 @@
 "use client";
 
-import { useState, ChangeEvent, FormEvent } from "react";
+import { useState } from "react";
+import { useForm, type Resolver, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { AddVehicleFormData } from "@/Types";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useVehicle } from "@/contexts/VehicleContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const schema = z.object({
+  alias: z.string().min(1, "El alias es requerido").max(20),
+  marca: z.string().min(1, "La marca es requerida"),
+  modelo: z.coerce.number().int().min(1900).max(new Date().getFullYear() + 1),
+  plates: z.string().min(1, "Las placas son requeridas"),
+  kilometrajeInicial: z.coerce.number().min(0, "Debe ser mayor o igual a 0"),
+  isActive: z.boolean().default(true),
+});
+
+type SchemaType = z.infer<typeof schema>;
 
 export default function AddVehicle() {
-  const [formData, setFormData] = useState<AddVehicleFormData>({
-    alias: "",
-    marca: "",
-    modelo: new Date().getFullYear(),
-    plates: "",
-    kilometrajeInicial: "",
-    isActive: true,
-  });
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const router = useRouter();
   const { refreshVehicles } = useVehicle();
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
-    setFormData(prev => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value
-    }));
-  };
+  const currentYear = new Date().getFullYear();
+  const years: number[] = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isValid },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema) as Resolver<SchemaType>,
+    defaultValues: {
+      alias: "",
+      marca: "",
+      modelo: currentYear,
+      plates: "",
+      kilometrajeInicial: 0,
+      isActive: true,
+    },
+  });
+
+  const onSubmit = async (data: SchemaType): Promise<void> => {
     setError("");
     setLoading(true);
 
@@ -46,19 +62,21 @@ export default function AddVehicle() {
         },
         credentials: "include",
         body: JSON.stringify({
-          ...formData,
-          modelo: Number(formData.modelo),
-          kilometrajeInicial: Number(formData.kilometrajeInicial),
+          alias: data.alias,
+          marca: data.marca,
+          modelo: data.modelo,
+          plates: data.plates,
+          kilometrajeInicial: data.kilometrajeInicial,
+          isActive: data.isActive,
         }),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al crear el vehículo");
+        throw new Error(responseData.error || "Error al crear el vehículo");
       }
 
-      // Refresh vehicles in context
       await refreshVehicles();
 
       router.push("/dashboard");
@@ -69,9 +87,6 @@ export default function AddVehicle() {
       setLoading(false);
     }
   };
-
-  const currentYear = new Date().getFullYear();
-  const years: number[] = Array.from({ length: 30 }, (_, i) => currentYear - i);
 
   return (
     <>
@@ -91,20 +106,20 @@ export default function AddVehicle() {
         {/* Form */}
         <Card>
           <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Alias */}
               <div className="space-y-2">
                 <Label htmlFor="alias">Alias / Nombre *</Label>
                 <Input
                   id="alias"
-                  name="alias"
                   type="text"
-                  required
                   placeholder="Mi Carro"
-                  value={formData.alias}
-                  onChange={handleChange}
                   disabled={loading}
+                  {...register("alias")}
                 />
+                {errors.alias?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.alias.message}</p>
+                )}
                 <p className="text-xs text-muted-foreground">Identificador único para el vehículo</p>
               </div>
 
@@ -113,15 +128,15 @@ export default function AddVehicle() {
                 <Label htmlFor="marca">Marca *</Label>
                 <Input
                   id="marca"
-                  name="marca"
                   type="text"
-                  required
                   placeholder="Toyota"
-                  value={formData.marca}
-                  onChange={handleChange}
                   disabled={loading}
                   className="uppercase"
+                  {...register("marca")}
                 />
+                {errors.marca?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.marca.message}</p>
+                )}
               </div>
 
               {/* Modelo */}
@@ -129,17 +144,17 @@ export default function AddVehicle() {
                 <Label htmlFor="modelo">Modelo (Año) *</Label>
                 <select
                   id="modelo"
-                  name="modelo"
-                  required
-                  value={formData.modelo}
-                  onChange={handleChange}
                   disabled={loading}
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
+                  {...register("modelo")}
                 >
                   {years.map(year => (
                     <option key={year} value={year}>{year}</option>
                   ))}
                 </select>
+                {errors.modelo?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.modelo.message}</p>
+                )}
               </div>
 
               {/* Placas */}
@@ -147,15 +162,15 @@ export default function AddVehicle() {
                 <Label htmlFor="plates">Placas *</Label>
                 <Input
                   id="plates"
-                  name="plates"
                   type="text"
-                  required
                   placeholder="ABC1234"
-                  value={formData.plates}
-                  onChange={handleChange}
                   disabled={loading}
                   className="uppercase"
+                  {...register("plates")}
                 />
+                {errors.plates?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.plates.message}</p>
+                )}
               </div>
 
               {/* Kilometraje Inicial */}
@@ -163,28 +178,31 @@ export default function AddVehicle() {
                 <Label htmlFor="kilometrajeInicial">Kilometraje inicial *</Label>
                 <Input
                   id="kilometrajeInicial"
-                  name="kilometrajeInicial"
                   type="number"
-                  required
                   min="0"
                   placeholder="50000"
-                  value={formData.kilometrajeInicial}
-                  onChange={handleChange}
                   disabled={loading}
+                  {...register("kilometrajeInicial")}
                 />
+                {errors.kilometrajeInicial?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.kilometrajeInicial.message}</p>
+                )}
                 <p className="text-xs text-muted-foreground">Kilometraje actual del vehículo al momento de registrarlo</p>
               </div>
 
               {/* Estado Activo */}
               <div className="flex items-center gap-3 py-2">
-                <input
-                  id="isActive"
+                <Controller
                   name="isActive"
-                  type="checkbox"
-                  checked={formData.isActive}
-                  onChange={handleChange}
-                  disabled={loading}
-                  className="w-4 h-4 rounded text-primary focus:ring-2 focus:ring-ring"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="isActive"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={loading}
+                    />
+                  )}
                 />
                 <Label htmlFor="isActive" className="cursor-pointer">
                   Vehículo activo
@@ -195,7 +213,7 @@ export default function AddVehicle() {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={loading || !formData.alias || !formData.marca || !formData.plates || !formData.kilometrajeInicial}
+                  disabled={loading || !isValid}
                   className="w-full"
                   size="lg"
                 >

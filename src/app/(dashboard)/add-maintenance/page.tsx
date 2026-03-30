@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState } from "react";
+import { useForm, type Resolver } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { AddMaintenanceFormData, Vehicle } from "@/Types";
 import { getTodayDateString } from "@/lib/dateUtils";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useVehicle } from "@/contexts/VehicleContext";
@@ -29,64 +31,85 @@ const MAINTENANCE_TYPES = [
   { value: "Otro", label: "Otro" },
 ];
 
+const schema = z.object({
+  vehicleAlias: z.string().min(1, "Selecciona un vehículo"),
+  tipo: z.string().min(1, "Selecciona el tipo de mantenimiento"),
+  descripcion: z.string().min(1, "La descripción es requerida"),
+  costo: z.coerce.number().min(0, "El costo debe ser mayor o igual a 0"),
+  fecha: z.string().min(1, "La fecha es requerida"),
+  kilometraje: z.coerce.number().min(0, "El kilometraje debe ser mayor o igual a 0"),
+  proveedor: z.string().optional().default(""),
+  proximoServicioFecha: z.string().optional().default(""),
+  proximoServicioKm: z.coerce.number().min(0).optional().or(z.literal("")),
+  notas: z.string().optional().default(""),
+});
+
+type SchemaType = z.infer<typeof schema>;
+
 export default function AddMaintenance() {
   const { vehicles } = useVehicle();
-  const [formData, setFormData] = useState<AddMaintenanceFormData>({
-    vehicleAlias: "",
-    tipo: "",
-    descripcion: "",
-    costo: "",
-    fecha: getTodayDateString(),
-    kilometraje: "",
-    proveedor: "",
-    proximoServicioFecha: "",
-    proximoServicioKm: "",
-    notas: "",
-  });
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<boolean>(false);
   const router = useRouter();
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema) as Resolver<SchemaType>,
+    defaultValues: {
+      vehicleAlias: "",
+      tipo: "",
+      descripcion: "",
+      costo: undefined,
+      fecha: getTodayDateString(),
+      kilometraje: undefined,
+      proveedor: "",
+      proximoServicioFecha: "",
+      proximoServicioKm: "",
+      notas: "",
+    },
+  });
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: SchemaType): Promise<void> => {
     setError("");
     setSuccess(false);
     setLoading(true);
 
     try {
-      // Prepare payload
-      const payload: any = {
-        vehicleAlias: formData.vehicleAlias,
-        tipo: formData.tipo,
-        descripcion: formData.descripcion,
-        costo: parseFloat(formData.costo),
-        fecha: formData.fecha,
-        kilometraje: parseFloat(formData.kilometraje),
+      const payload: {
+        vehicleAlias: string;
+        tipo: string;
+        descripcion: string;
+        costo: number;
+        fecha: string;
+        kilometraje: number;
+        proveedor?: string;
+        proximoServicioFecha?: string;
+        proximoServicioKm?: number;
+        notas?: string;
+      } = {
+        vehicleAlias: data.vehicleAlias,
+        tipo: data.tipo,
+        descripcion: data.descripcion,
+        costo: data.costo,
+        fecha: data.fecha,
+        kilometraje: data.kilometraje,
       };
 
-      // Add optional fields
-      if (formData.proveedor) {
-        payload.proveedor = formData.proveedor;
+      if (data.proveedor) {
+        payload.proveedor = data.proveedor;
       }
-      if (formData.proximoServicioFecha) {
-        payload.proximoServicioFecha = formData.proximoServicioFecha;
+      if (data.proximoServicioFecha) {
+        payload.proximoServicioFecha = data.proximoServicioFecha;
       }
-      if (formData.proximoServicioKm) {
-        payload.proximoServicioKm = parseFloat(formData.proximoServicioKm);
+      if (data.proximoServicioKm !== "" && data.proximoServicioKm !== undefined) {
+        payload.proximoServicioKm = Number(data.proximoServicioKm);
       }
-      if (formData.notas) {
-        payload.notas = formData.notas;
+      if (data.notas) {
+        payload.notas = data.notas;
       }
 
       const response = await fetch("/api/maintenance", {
@@ -98,10 +121,10 @@ export default function AddMaintenance() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al crear el mantenimiento");
+        throw new Error(responseData.error || "Error al crear el mantenimiento");
       }
 
       setSuccess(true);
@@ -146,17 +169,14 @@ export default function AddMaintenance() {
         {/* Form */}
         <Card>
           <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Vehicle Selection */}
               <div className="space-y-2">
                 <Label htmlFor="vehicleAlias">Vehículo *</Label>
                 <SelectNative
                   id="vehicleAlias"
-                  name="vehicleAlias"
-                  value={formData.vehicleAlias}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
+                  {...register("vehicleAlias")}
                 >
                   <option value="">Seleccionar vehículo</option>
                   {vehicles.filter(v => v.isActive).map((vehicle) => (
@@ -165,6 +185,9 @@ export default function AddMaintenance() {
                     </option>
                   ))}
                 </SelectNative>
+                {errors.vehicleAlias?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.vehicleAlias.message}</p>
+                )}
               </div>
 
               {/* Maintenance Type */}
@@ -172,11 +195,8 @@ export default function AddMaintenance() {
                 <Label htmlFor="tipo">Tipo de mantenimiento *</Label>
                 <SelectNative
                   id="tipo"
-                  name="tipo"
-                  value={formData.tipo}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
+                  {...register("tipo")}
                 >
                   <option value="">Seleccionar tipo</option>
                   {MAINTENANCE_TYPES.map((type) => (
@@ -185,6 +205,9 @@ export default function AddMaintenance() {
                     </option>
                   ))}
                 </SelectNative>
+                {errors.tipo?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.tipo.message}</p>
+                )}
               </div>
 
               {/* Description */}
@@ -192,14 +215,14 @@ export default function AddMaintenance() {
                 <Label htmlFor="descripcion">Descripción *</Label>
                 <Textarea
                   id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
                   rows={3}
                   placeholder="Detalles del mantenimiento..."
+                  {...register("descripcion")}
                 />
+                {errors.descripcion?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.descripcion.message}</p>
+                )}
               </div>
 
               {/* Cost */}
@@ -207,16 +230,16 @@ export default function AddMaintenance() {
                 <Label htmlFor="costo">Costo (Q) *</Label>
                 <Input
                   id="costo"
-                  name="costo"
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.costo}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
                   placeholder="0.00"
+                  {...register("costo")}
                 />
+                {errors.costo?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.costo.message}</p>
+                )}
               </div>
 
               {/* Date and Kilometraje in a row */}
@@ -225,29 +248,29 @@ export default function AddMaintenance() {
                   <Label htmlFor="fecha">Fecha *</Label>
                   <Input
                     id="fecha"
-                    name="fecha"
                     type="date"
-                    value={formData.fecha}
-                    onChange={handleChange}
-                    required
                     disabled={loading}
+                    {...register("fecha")}
                   />
+                  {errors.fecha?.message && (
+                    <p className="text-xs text-destructive mt-1">{errors.fecha.message}</p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
                   <Label htmlFor="kilometraje">Kilometraje *</Label>
                   <Input
                     id="kilometraje"
-                    name="kilometraje"
                     type="number"
                     step="0.1"
                     min="0"
-                    value={formData.kilometraje}
-                    onChange={handleChange}
-                    required
                     disabled={loading}
                     placeholder="15000"
+                    {...register("kilometraje")}
                   />
+                  {errors.kilometraje?.message && (
+                    <p className="text-xs text-destructive mt-1">{errors.kilometraje.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -256,12 +279,10 @@ export default function AddMaintenance() {
                 <Label htmlFor="proveedor">Proveedor / Taller</Label>
                 <Input
                   id="proveedor"
-                  name="proveedor"
                   type="text"
-                  value={formData.proveedor}
-                  onChange={handleChange}
                   disabled={loading}
                   placeholder="Nombre del taller o proveedor"
+                  {...register("proveedor")}
                 />
               </div>
 
@@ -275,11 +296,9 @@ export default function AddMaintenance() {
                     <Label htmlFor="proximoServicioFecha">Fecha del próximo servicio</Label>
                     <Input
                       id="proximoServicioFecha"
-                      name="proximoServicioFecha"
                       type="date"
-                      value={formData.proximoServicioFecha}
-                      onChange={handleChange}
                       disabled={loading}
+                      {...register("proximoServicioFecha")}
                     />
                   </div>
 
@@ -287,14 +306,12 @@ export default function AddMaintenance() {
                     <Label htmlFor="proximoServicioKm">Kilometraje próximo servicio</Label>
                     <Input
                       id="proximoServicioKm"
-                      name="proximoServicioKm"
                       type="number"
                       step="0.1"
                       min="0"
-                      value={formData.proximoServicioKm}
-                      onChange={handleChange}
                       disabled={loading}
                       placeholder="20000"
+                      {...register("proximoServicioKm")}
                     />
                   </div>
                 </div>
@@ -305,12 +322,10 @@ export default function AddMaintenance() {
                 <Label htmlFor="notas">Notas adicionales</Label>
                 <Textarea
                   id="notas"
-                  name="notas"
-                  value={formData.notas}
-                  onChange={handleChange}
                   disabled={loading}
                   rows={3}
                   placeholder="Información adicional..."
+                  {...register("notas")}
                 />
               </div>
 
@@ -318,7 +333,7 @@ export default function AddMaintenance() {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !isValid}
                   className="w-full"
                   size="lg"
                 >

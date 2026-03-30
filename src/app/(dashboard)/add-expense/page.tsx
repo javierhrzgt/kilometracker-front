@@ -1,8 +1,10 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, FormEvent } from "react";
+import { useState } from "react";
+import { useForm, type Resolver, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useRouter } from "next/navigation";
-import { AddExpenseFormData, Vehicle } from "@/Types";
 import { getTodayDateString } from "@/lib/dateUtils";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { useVehicle } from "@/contexts/VehicleContext";
@@ -36,67 +38,85 @@ const RECURRING_FREQUENCIES = [
   { value: "Anual", label: "Anual" },
 ];
 
+const schema = z.object({
+  vehicleAlias: z.string().min(1, "Selecciona un vehículo"),
+  categoria: z.string().min(1, "Selecciona una categoría"),
+  monto: z.coerce.number().min(0.01, "El monto debe ser mayor a 0"),
+  descripcion: z.string().min(1, "La descripción es requerida"),
+  fecha: z.string().min(1, "La fecha es requerida"),
+  esRecurrente: z.boolean().default(false),
+  frecuenciaRecurrencia: z.string().optional().default(""),
+  proximoPago: z.string().optional().default(""),
+  esDeducibleImpuestos: z.boolean().default(false),
+}).refine(
+  (data) => !data.esRecurrente || (data.frecuenciaRecurrencia && data.proximoPago),
+  {
+    message: "La frecuencia y próxima fecha son requeridas para gastos recurrentes",
+    path: ["frecuenciaRecurrencia"],
+  }
+);
+
+type SchemaType = z.infer<typeof schema>;
+
 export default function AddExpense() {
   const { vehicles } = useVehicle();
-  const [formData, setFormData] = useState<AddExpenseFormData>({
-    vehicleAlias: "",
-    categoria: "",
-    monto: "",
-    descripcion: "",
-    fecha: getTodayDateString(),
-    esRecurrente: false,
-    frecuenciaRecurrencia: "",
-    proximoPago: "",
-    esDeducibleImpuestos: false,
-  });
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string>("");
   const [success, setSuccess] = useState<boolean>(false);
   const router = useRouter();
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
-  ) => {
-    const { name, value, type } = e.target;
-    const checked = (e.target as HTMLInputElement).checked;
+  const {
+    register,
+    handleSubmit,
+    control,
+    watch,
+    formState: { errors, isValid },
+  } = useForm<SchemaType>({
+    resolver: zodResolver(schema) as Resolver<SchemaType>,
+    defaultValues: {
+      vehicleAlias: "",
+      categoria: "",
+      monto: undefined,
+      descripcion: "",
+      fecha: getTodayDateString(),
+      esRecurrente: false,
+      frecuenciaRecurrencia: "",
+      proximoPago: "",
+      esDeducibleImpuestos: false,
+    },
+  });
 
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+  const esRecurrente = watch("esRecurrente");
 
-    // Reset recurring fields if esRecurrente is unchecked
-    if (name === "esRecurrente" && !checked) {
-      setFormData((prev) => ({
-        ...prev,
-        frecuenciaRecurrencia: "",
-        proximoPago: "",
-      }));
-    }
-  };
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const onSubmit = async (data: SchemaType): Promise<void> => {
     setError("");
     setSuccess(false);
     setLoading(true);
 
     try {
-      // Prepare payload
-      const payload: any = {
-        vehicleAlias: formData.vehicleAlias,
-        categoria: formData.categoria,
-        monto: parseFloat(formData.monto),
-        descripcion: formData.descripcion,
-        fecha: formData.fecha,
-        esRecurrente: formData.esRecurrente,
-        esDeducibleImpuestos: formData.esDeducibleImpuestos,
+      const payload: {
+        vehicleAlias: string;
+        categoria: string;
+        monto: number;
+        descripcion: string;
+        fecha: string;
+        esRecurrente: boolean;
+        esDeducibleImpuestos: boolean;
+        frecuenciaRecurrencia?: string;
+        proximoPago?: string;
+      } = {
+        vehicleAlias: data.vehicleAlias,
+        categoria: data.categoria,
+        monto: data.monto,
+        descripcion: data.descripcion,
+        fecha: data.fecha,
+        esRecurrente: data.esRecurrente,
+        esDeducibleImpuestos: data.esDeducibleImpuestos,
       };
 
-      // Add recurring fields if applicable
-      if (formData.esRecurrente) {
-        payload.frecuenciaRecurrencia = formData.frecuenciaRecurrencia;
-        payload.proximoPago = formData.proximoPago;
+      if (data.esRecurrente) {
+        payload.frecuenciaRecurrencia = data.frecuenciaRecurrencia;
+        payload.proximoPago = data.proximoPago;
       }
 
       const response = await fetch("/api/expenses", {
@@ -108,10 +128,10 @@ export default function AddExpense() {
         body: JSON.stringify(payload),
       });
 
-      const data = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Error al crear el gasto");
+        throw new Error(responseData.error || "Error al crear el gasto");
       }
 
       setSuccess(true);
@@ -156,17 +176,14 @@ export default function AddExpense() {
         {/* Form */}
         <Card>
           <CardContent className="pt-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
               {/* Vehicle Selection */}
               <div className="space-y-2">
                 <Label htmlFor="vehicleAlias">Vehículo *</Label>
                 <SelectNative
                   id="vehicleAlias"
-                  name="vehicleAlias"
-                  value={formData.vehicleAlias}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
+                  {...register("vehicleAlias")}
                 >
                   <option value="">Seleccionar vehículo</option>
                   {vehicles.filter(v => v.isActive).map((vehicle) => (
@@ -175,6 +192,9 @@ export default function AddExpense() {
                     </option>
                   ))}
                 </SelectNative>
+                {errors.vehicleAlias?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.vehicleAlias.message}</p>
+                )}
               </div>
 
               {/* Category */}
@@ -182,11 +202,8 @@ export default function AddExpense() {
                 <Label htmlFor="categoria">Categoría *</Label>
                 <SelectNative
                   id="categoria"
-                  name="categoria"
-                  value={formData.categoria}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
+                  {...register("categoria")}
                 >
                   <option value="">Seleccionar categoría</option>
                   {EXPENSE_CATEGORIES.map((cat) => (
@@ -195,6 +212,9 @@ export default function AddExpense() {
                     </option>
                   ))}
                 </SelectNative>
+                {errors.categoria?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.categoria.message}</p>
+                )}
               </div>
 
               {/* Amount */}
@@ -202,16 +222,16 @@ export default function AddExpense() {
                 <Label htmlFor="monto">Monto (Q) *</Label>
                 <Input
                   id="monto"
-                  name="monto"
                   type="number"
                   step="0.01"
                   min="0"
-                  value={formData.monto}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
                   placeholder="0.00"
+                  {...register("monto")}
                 />
+                {errors.monto?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.monto.message}</p>
+                )}
               </div>
 
               {/* Date */}
@@ -219,13 +239,13 @@ export default function AddExpense() {
                 <Label htmlFor="fecha">Fecha *</Label>
                 <Input
                   id="fecha"
-                  name="fecha"
                   type="date"
-                  value={formData.fecha}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
+                  {...register("fecha")}
                 />
+                {errors.fecha?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.fecha.message}</p>
+                )}
               </div>
 
               {/* Description */}
@@ -233,25 +253,29 @@ export default function AddExpense() {
                 <Label htmlFor="descripcion">Descripción *</Label>
                 <Textarea
                   id="descripcion"
-                  name="descripcion"
-                  value={formData.descripcion}
-                  onChange={handleChange}
-                  required
                   disabled={loading}
                   rows={3}
                   placeholder="Detalles del gasto..."
+                  {...register("descripcion")}
                 />
+                {errors.descripcion?.message && (
+                  <p className="text-xs text-destructive mt-1">{errors.descripcion.message}</p>
+                )}
               </div>
 
               {/* Tax Deductible Checkbox */}
               <div className="flex items-center gap-2">
-                <Checkbox
-                  id="esDeducibleImpuestos"
-                  checked={formData.esDeducibleImpuestos}
-                  onCheckedChange={(checked) =>
-                    setFormData(prev => ({ ...prev, esDeducibleImpuestos: checked as boolean }))
-                  }
-                  disabled={loading}
+                <Controller
+                  name="esDeducibleImpuestos"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="esDeducibleImpuestos"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={loading}
+                    />
+                  )}
                 />
                 <Label htmlFor="esDeducibleImpuestos" className="cursor-pointer font-normal">
                   Deducible de impuestos
@@ -260,18 +284,17 @@ export default function AddExpense() {
 
               {/* Recurring Checkbox */}
               <div className="flex items-center gap-2">
-                <Checkbox
-                  id="esRecurrente"
-                  checked={formData.esRecurrente}
-                  onCheckedChange={(checked) => {
-                    const isChecked = checked as boolean;
-                    setFormData(prev => ({
-                      ...prev,
-                      esRecurrente: isChecked,
-                      ...(isChecked ? {} : { frecuenciaRecurrencia: "", proximoPago: "" })
-                    }));
-                  }}
-                  disabled={loading}
+                <Controller
+                  name="esRecurrente"
+                  control={control}
+                  render={({ field }) => (
+                    <Checkbox
+                      id="esRecurrente"
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                      disabled={loading}
+                    />
+                  )}
                 />
                 <Label htmlFor="esRecurrente" className="cursor-pointer font-normal">
                   Gasto recurrente
@@ -279,17 +302,14 @@ export default function AddExpense() {
               </div>
 
               {/* Recurring Options */}
-              {formData.esRecurrente && (
+              {esRecurrente && (
                 <div className="pl-6 border-l-2 space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="frecuenciaRecurrencia">Frecuencia *</Label>
                     <SelectNative
                       id="frecuenciaRecurrencia"
-                      name="frecuenciaRecurrencia"
-                      value={formData.frecuenciaRecurrencia}
-                      onChange={handleChange}
-                      required={formData.esRecurrente}
                       disabled={loading}
+                      {...register("frecuenciaRecurrencia")}
                     >
                       {RECURRING_FREQUENCIES.slice(1).map((freq) => (
                         <option key={freq.value} value={freq.value}>
@@ -297,19 +317,22 @@ export default function AddExpense() {
                         </option>
                       ))}
                     </SelectNative>
+                    {errors.frecuenciaRecurrencia?.message && (
+                      <p className="text-xs text-destructive mt-1">{errors.frecuenciaRecurrencia.message}</p>
+                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="proximoPago">Próxima fecha de pago *</Label>
                     <Input
                       id="proximoPago"
-                      name="proximoPago"
                       type="date"
-                      value={formData.proximoPago}
-                      onChange={handleChange}
-                      required={formData.esRecurrente}
                       disabled={loading}
+                      {...register("proximoPago")}
                     />
+                    {errors.proximoPago?.message && (
+                      <p className="text-xs text-destructive mt-1">{errors.proximoPago.message}</p>
+                    )}
                   </div>
                 </div>
               )}
@@ -318,7 +341,7 @@ export default function AddExpense() {
               <div className="pt-4">
                 <Button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || !isValid}
                   className="w-full"
                   size="lg"
                 >
