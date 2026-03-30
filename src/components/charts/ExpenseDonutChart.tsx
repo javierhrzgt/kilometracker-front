@@ -8,18 +8,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from "recharts";
-
-const CHART_COLORS = [
-  "hsl(239 84% 67%)",
-  "hsl(160 60% 45%)",
-  "hsl(30 80% 55%)",
-  "hsl(280 65% 60%)",
-  "hsl(10 75% 58%)",
-  "hsl(200 70% 50%)",
-  "hsl(50 90% 55%)",
-  "hsl(340 70% 55%)",
-  "hsl(180 55% 45%)",
-];
+import { useChartColors } from "@/hooks/useChartColors";
 
 interface CategoryData {
   categoria: string;
@@ -31,6 +20,20 @@ interface ExpenseDonutChartProps {
 }
 
 export function ExpenseDonutChart({ data }: ExpenseDonutChartProps) {
+  const c = useChartColors();
+
+  const CHART_COLORS = [
+    c.chart1,
+    c.chart2,
+    c.chart3,
+    c.chart4,
+    c.chart5,
+    "hsl(200 70% 50%)",
+    "hsl(50 90% 55%)",
+    "hsl(340 70% 55%)",
+    "hsl(180 55% 45%)",
+  ];
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
@@ -62,16 +65,16 @@ export function ExpenseDonutChart({ data }: ExpenseDonutChartProps) {
         </Pie>
         <Tooltip
           contentStyle={{
-            backgroundColor: "hsl(0 0% 100%)",
-            border: "1px solid hsl(214.3 31.8% 91.4%)",
+            backgroundColor: c.tooltipBg,
+            border: `1px solid ${c.tooltipBorder}`,
             borderRadius: "8px",
             fontSize: 12,
           }}
-          formatter={(value: number) => [`$${value.toFixed(2)}`, ""]}
+          formatter={(value: number) => [`Q${value.toFixed(2)}`, ""]}
         />
         <Legend
           formatter={(value) => value}
-          wrapperStyle={{ fontSize: 11 }}
+          wrapperStyle={{ fontSize: 11, color: c.tick }}
         />
       </PieChart>
     </ResponsiveContainer>

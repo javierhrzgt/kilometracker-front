@@ -72,6 +72,29 @@
   --color-chart-6: hsl(200 70% 50%);
 }
 
+/* Domain color aliases — semantic tokens for app-specific concepts.
+   Use these instead of the primitive tokens directly so intent is clear
+   and changes propagate consistently. */
+:root {
+  /* Vehicle cost categories */
+  --color-cat-fuel:        var(--color-info);
+  --color-cat-maintenance: var(--color-warning);
+  --color-cat-expenses:    var(--color-purple);
+  --color-cat-total:       var(--color-foreground);
+
+  /* User roles */
+  --color-role-root:  hsl(0 84% 60%);
+  --color-role-admin: var(--color-purple);
+  --color-role-write: var(--color-info);
+  --color-role-read:  var(--color-muted-foreground);
+
+  /* Record status */
+  --color-status-active:   var(--color-success);
+  --color-status-inactive: var(--color-muted-foreground);
+  --color-status-pending:  var(--color-warning);
+  --color-status-overdue:  var(--color-destructive);
+}
+
 /* Enhanced Shadow System */
 @layer utilities {
   .shadow-depth-1 {
@@ -104,29 +127,38 @@
   .transition-elevation {
     transition: box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1), transform 200ms cubic-bezier(0.4, 0, 0.2, 1);
   }
+
+  /* Standard page content container — use on every <main> instead of repeating the class string */
+  .page-container {
+    @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8;
+  }
 }
 
 /* Dark mode token overrides */
 .dark {
-  --color-background: hsl(240 10% 3.9%);
-  --color-foreground: hsl(0 0% 98%);
-  --color-sidebar: hsl(240 10% 5%);
-  --color-card: hsl(240 10% 6%);
+  --color-background:     hsl(240 10% 4%);
+  --color-foreground:     hsl(0 0% 98%);
+  --color-sidebar:        hsl(240 8% 7%);
+  --color-card:           hsl(240 8% 10%);
   --color-card-foreground: hsl(0 0% 98%);
-  --color-popover: hsl(240 10% 6%);
+  --color-popover:        hsl(240 8% 10%);
   --color-popover-foreground: hsl(0 0% 98%);
-  --color-primary: hsl(239 84% 67%);
+  --color-primary:        hsl(239 84% 67%);
   --color-primary-foreground: hsl(0 0% 100%);
-  --color-secondary: hsl(240 3.7% 15.9%);
+  --color-secondary:      hsl(240 5% 16%);
   --color-secondary-foreground: hsl(0 0% 98%);
-  --color-muted: hsl(240 3.7% 15.9%);
-  --color-muted-foreground: hsl(240 5% 64.9%);
-  --color-accent: hsl(240 3.7% 15.9%);
+  --color-muted:          hsl(240 5% 16%);
+  --color-muted-foreground: hsl(240 5% 65%);
+  --color-accent:         hsl(240 5% 16%);
   --color-accent-foreground: hsl(0 0% 98%);
-  --color-destructive: hsl(0 72% 51%);
-  --color-border: hsl(240 3.7% 15.9%);
-  --color-input: hsl(240 3.7% 15.9%);
-  --color-ring: hsl(239 84% 67%);
+  --color-destructive:    hsl(0 72% 51%);
+  --color-border:         hsl(240 5% 18%);
+  --color-border-strong:  hsl(240 5% 25%);
+  --color-input:          hsl(240 5% 16%);
+  --color-ring:           hsl(239 84% 67%);
+  /* Extra surface tokens for depth layering */
+  --color-card-elevated:  hsl(240 7% 13%);
+  --color-surface-sunken: hsl(240 10% 6%);
 }
 
 /* Fix iOS Safari date input styling */

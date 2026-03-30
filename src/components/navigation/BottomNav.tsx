@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { LayoutDashboard, Fuel, Menu, Plus, Route, Wrench, DollarSign } from "lucide-react";
+import { LayoutDashboard, Car, Menu, Plus, Route, Wrench, DollarSign, Fuel } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -19,7 +19,7 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
 
   const navItems = [
     { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
-    { href: "/refuels-history", icon: Fuel, label: "Historial" },
+    { href: "/routes-history", icon: Route, label: "Rutas" },
   ];
 
   const fabActions = [
@@ -75,7 +75,7 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
                 : "text-muted-foreground hover:text-foreground hover:bg-accent"
             )}
           >
-            <LayoutDashboard className="h-5 w-5" />
+            <Car className="h-5 w-5" />
             <span className="text-xs font-medium">Vehículos</span>
           </Link>
 

@@ -2,6 +2,133 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Design System Conventions
+
+### StatCard — cuándo usar qué `accent`
+```tsx
+// Combustible / Fuel → info (azul)
+<StatCard label="Gasto combustible" value="Q 120.00" accent="info" />
+
+// Mantenimiento / Costo → warning (ámbar)
+<StatCard label="Costo Total" value="Q 850.00" accent="warning" />
+
+// Otros gastos → purple
+<StatCard label="Otros Gastos" value="Q 200.00" accent="purple" />
+
+// Estado activo / deducible / éxito → success (verde)
+<StatCard label="Activos" value={12} accent="success" />
+
+// Sin accent → total general o métrica neutral
+<StatCard label="Total" value="Q 1,170.00" />
+```
+
+### CTA buttons — patrón estándar
+```tsx
+// Siempre: <Plus> icon + "Agregar [Entidad]"
+<Button onClick={() => router.push("/add-route")}>
+  <Plus className="h-4 w-4 mr-2" />
+  Agregar Ruta
+</Button>
+```
+
+### Patrones mobile-first
+
+**FilterPanel** (`src/components/ui/FilterPanel.tsx`) — úsalo en cualquier página con filtros:
+```tsx
+<FilterPanel
+  onApply={fetchData}
+  onClear={handleClear}
+  activeCount={activeFilterCount}  // número de filtros activos → badge en mobile
+  gridClassName="grid grid-cols-1 sm:grid-cols-3 gap-4"  // ajustar según nº de campos
+  extras={<label>...checkbox "Mostrar inactivos"...</label>}  // opcional
+>
+  {/* Un <div className="space-y-2"> por campo */}
+  <div className="space-y-2">
+    <Label>Vehículo</Label>
+    <SelectNative name="vehicleAlias" ...>...</SelectNative>
+  </div>
+</FilterPanel>
+```
+- En **mobile**: renderiza botón "Filtros" + badge de activos + Sheet desde abajo
+- En **desktop**: renderiza Card con header (título + Limpiar) + grid de campos + botón Aplicar
+
+**Card list mobile / tabla desktop** — en páginas de historial:
+```tsx
+{/* Mobile — block md:hidden */}
+<div className="block md:hidden space-y-3">
+  {items.map((item) => (
+    <div className="rounded-xl border border-border bg-card p-4">
+      {/* header: nombre + badges + edit/delete buttons (h-8 w-8) */}
+      {/* body: valor principal grande + metadata secundaria */}
+    </div>
+  ))}
+</div>
+
+{/* Desktop — hidden md:block */}
+<div className="hidden md:block">
+  <Card><Table>...</Table></Card>
+</div>
+```
+
+**Loading state** — usar siempre `CardSkeleton`:
+```tsx
+import { CardSkeleton } from "@/components/ui/card-skeleton";
+// ...
+{loading ? <CardSkeleton rows={6} /> : /* contenido */}
+```
+
+### Badge variants semánticos
+```tsx
+<Badge variant="success">Activo / Deducible</Badge>
+<Badge variant="warning">Mantenimiento / Costo</Badge>
+<Badge variant="info">Categoría de gasto / Write role</Badge>
+<Badge variant="purple">Admin role</Badge>
+<Badge variant="muted">Inactivo / Read role</Badge>
+<Badge variant="destructive">Root role</Badge>
+```
+
+### Charts — dark mode
+Cualquier chart nuevo **debe** usar `useChartColors()`:
+```tsx
+import { useChartColors } from "@/hooks/useChartColors";
+
+export function MiChart({ data }) {
+  const c = useChartColors();
+  return (
+    <ResponsiveContainer ...>
+      <LineChart ...>
+        <CartesianGrid stroke={c.grid} />
+        <XAxis tick={{ fill: c.tick }} />
+        <Tooltip contentStyle={{ backgroundColor: c.tooltipBg, border: `1px solid ${c.tooltipBorder}` }} />
+        <Line stroke={c.chart1} />
+      </LineChart>
+    </ResponsiveContainer>
+  );
+}
+```
+Colores disponibles: `chart1` (indigo), `chart2` (verde), `chart3` (naranja), `chart4` (purple), `chart5` (rojo).
+
+### Tokens de dominio (globals.css)
+```css
+/* Categorías de costo */
+--color-cat-fuel         → usar accent="info"
+--color-cat-maintenance  → usar accent="warning"
+--color-cat-expenses     → usar accent="purple"
+
+/* Roles de usuario */
+--color-role-root        → Badge destructive
+--color-role-admin       → Badge purple
+--color-role-write       → Badge info
+--color-role-read        → Badge muted
+
+/* Estado de registros */
+--color-status-active    → Badge success
+--color-status-inactive  → Badge muted
+--color-status-overdue   → Badge destructive
+```
+
+---
+
 ## Project Overview
 
 Kilometracker v2 is a Next.js 16 application for comprehensive vehicle management. The app allows users to:

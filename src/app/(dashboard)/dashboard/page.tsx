@@ -12,10 +12,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { VehicleCard } from "@/components/features/vehicles/VehicleCard";
 import { VehicleCardSkeleton } from "@/components/ui/vehicle-card-skeleton";
 import { EmptyState } from "@/components/ui/empty-state";
-import { MetricCard } from "@/components/ui/MetricCard";
+import { StatCard } from "@/components/features/stats/StatCard";
 import { KmAreaChart } from "@/components/charts/KmAreaChart";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Car, Route, Fuel, Wrench, Bell } from "lucide-react";
+import { Car, Route, Fuel, Wrench, Bell, Plus } from "lucide-react";
 
 interface DashboardSummary {
   totalVehicles: number;
@@ -111,7 +111,8 @@ export default function Dashboard() {
           description="Vista general de tus vehículos"
           actions={
             <Button onClick={() => router.push("/add-vehicle")}>
-              + Agregar Vehículo
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Vehículo
             </Button>
           }
         />
@@ -144,7 +145,8 @@ export default function Dashboard() {
         }
         actions={
           <Button onClick={() => router.push("/add-vehicle")}>
-            + Agregar Vehículo
+            <Plus className="h-4 w-4 mr-2" />
+              Agregar Vehículo
           </Button>
         }
       />
@@ -159,18 +161,18 @@ export default function Dashboard() {
 
         {/* KPI Row */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-          <MetricCard
-            title="Km este mes"
+          <StatCard
+            label="Km este mes"
             value={`${(summary?.kmThisMonth ?? 0).toLocaleString()} km`}
             icon={<Route className="h-5 w-5" />}
           />
-          <MetricCard
-            title="Gasto últimos 30 días"
+          <StatCard
+            label="Gasto últimos 30 días"
             value={`Q ${(summary?.totalSpentLast30Days ?? 0).toFixed(2)}`}
             icon={<Fuel className="h-5 w-5" />}
           />
-          <MetricCard
-            title="Eficiencia"
+          <StatCard
+            label="Eficiencia"
             value={
               dashboard?.vehicles[0]?.efficiency.kmPorLitro
                 ? `${dashboard.vehicles[0].efficiency.kmPorLitro} km/L`
@@ -179,10 +181,11 @@ export default function Dashboard() {
             subtitle={firstAlias ? firstAlias : undefined}
             icon={<Car className="h-5 w-5" />}
           />
-          <MetricCard
-            title="Alertas"
+          <StatCard
+            label="Alertas"
             value={alerts.length}
             subtitle={alerts.length > 0 ? alerts[0].message : "Sin alertas"}
+            accent={alerts.length > 0 ? "warning" : undefined}
             icon={<Bell className="h-5 w-5" />}
           />
         </div>

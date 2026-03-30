@@ -9,6 +9,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useChartColors } from "@/hooks/useChartColors";
 
 interface DataPoint {
   period: string;
@@ -21,6 +22,8 @@ interface FuelBarChartProps {
 }
 
 export function FuelBarChart({ data }: FuelBarChartProps) {
+  const c = useChartColors();
+
   if (!data || data.length === 0) {
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
@@ -32,33 +35,33 @@ export function FuelBarChart({ data }: FuelBarChartProps) {
   return (
     <ResponsiveContainer width="100%" height={220}>
       <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="hsl(214.3 31.8% 91.4%)" vertical={false} />
+        <CartesianGrid strokeDasharray="3 3" stroke={c.grid} vertical={false} />
         <XAxis
           dataKey="label"
-          tick={{ fontSize: 11, fill: "hsl(215.4 16.3% 46.9%)" }}
+          tick={{ fontSize: 11, fill: c.tick }}
           axisLine={false}
           tickLine={false}
         />
         <YAxis
-          tick={{ fontSize: 11, fill: "hsl(215.4 16.3% 46.9%)" }}
+          tick={{ fontSize: 11, fill: c.tick }}
           axisLine={false}
           tickLine={false}
           width={48}
-          tickFormatter={(v) => `$${v}`}
+          tickFormatter={(v) => `Q${v}`}
         />
         <Tooltip
           contentStyle={{
-            backgroundColor: "hsl(0 0% 100%)",
-            border: "1px solid hsl(214.3 31.8% 91.4%)",
+            backgroundColor: c.tooltipBg,
+            border: `1px solid ${c.tooltipBorder}`,
             borderRadius: "8px",
             fontSize: 12,
           }}
-          formatter={(value: number) => [`$${value.toFixed(2)}`, "Combustible"]}
-          cursor={{ fill: "hsl(214.3 31.8% 91.4% / 0.4)" }}
+          formatter={(value: number) => [`Q${value.toFixed(2)}`, "Combustible"]}
+          cursor={{ fill: `${c.grid}66` }}
         />
         <Bar
           dataKey="value"
-          fill="hsl(160 60% 45%)"
+          fill={c.chart2}
           radius={[4, 4, 0, 0]}
           maxBarSize={48}
         />

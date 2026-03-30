@@ -5,7 +5,9 @@ import { useRouter, useParams } from "next/navigation";
 import type { Vehicle, VehicleStats } from "@/Types";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import { StatCard } from "@/components/features/stats/StatCard";
+import { CardSkeleton } from "@/components/ui/card-skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApiData } from "@/hooks/useApiData";
 import { KmAreaChart } from "@/components/charts/KmAreaChart";
@@ -61,9 +63,14 @@ export default function VehicleStatsPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center">
-        <div className="text-muted-foreground">Cargando...</div>
-      </div>
+      <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-24 rounded-xl bg-muted animate-pulse" />
+          ))}
+        </div>
+        <CardSkeleton rows={5} />
+      </main>
     );
   }
 
@@ -75,13 +82,15 @@ export default function VehicleStatsPage() {
         actions={
           <div className="flex gap-2 flex-wrap">
             <Button onClick={() => router.push(`/add-route?vehicle=${alias}`)}>
-              + Ruta
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Ruta
             </Button>
             <Button
               variant="outline"
               onClick={() => router.push(`/add-refuel?vehicle=${alias}`)}
             >
-              + Recarga
+              <Plus className="h-4 w-4 mr-2" />
+              Agregar Recarga
             </Button>
           </div>
         }
@@ -168,51 +177,24 @@ export default function VehicleStatsPage() {
             </div>
 
             {/* Cost Breakdown */}
-            <div className="border border-border rounded-lg p-4 sm:p-6 bg-card">
-              <h3 className="text-base sm:text-lg font-medium mb-4 text-foreground">Costos</h3>
+            <div>
+              <h3 className="text-base sm:text-lg font-medium mb-3 text-foreground">Costos</h3>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div className="border border-border rounded-lg p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">Combustible</p>
-                  <p className="text-lg sm:text-xl font-semibold text-info">Q {stats.costs.combustible.toFixed(2)}</p>
-                </div>
-                <div className="border border-border rounded-lg p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">Mantenimiento</p>
-                  <p className="text-lg sm:text-xl font-semibold text-warning">Q {stats.costs.mantenimiento.toFixed(2)}</p>
-                </div>
-                <div className="border border-border rounded-lg p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">Otros Gastos</p>
-                  <p className="text-lg sm:text-xl font-semibold text-purple">Q {stats.costs.gastosOtros.toFixed(2)}</p>
-                </div>
-                <div className="border border-border rounded-lg p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">Total</p>
-                  <p className="text-lg sm:text-xl font-semibold text-foreground">Q {stats.costs.total.toFixed(2)}</p>
-                </div>
+                <StatCard label="Combustible" value={`Q ${stats.costs.combustible.toFixed(2)}`} size="sm" accent="info" />
+                <StatCard label="Mantenimiento" value={`Q ${stats.costs.mantenimiento.toFixed(2)}`} size="sm" accent="warning" />
+                <StatCard label="Otros Gastos" value={`Q ${stats.costs.gastosOtros.toFixed(2)}`} size="sm" accent="purple" />
+                <StatCard label="Total" value={`Q ${stats.costs.total.toFixed(2)}`} size="sm" />
               </div>
             </div>
 
             {/* Efficiency Metrics */}
-            <div className="border border-border rounded-lg p-4 sm:p-6 bg-card">
-              <h3 className="text-base sm:text-lg font-medium mb-4 text-foreground">Eficiencia</h3>
+            <div>
+              <h3 className="text-base sm:text-lg font-medium mb-3 text-foreground">Eficiencia</h3>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                <div className="border border-border rounded-lg p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">km/Litro</p>
-                  <p className="text-lg sm:text-2xl font-semibold text-success">{stats.efficiency.kmPorLitro.toFixed(2)}</p>
-                </div>
-                <div className="border border-border rounded-lg p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">km/Galón</p>
-                  <p className="text-lg sm:text-2xl font-semibold text-success">{stats.efficiency.kmPorGalon.toFixed(2)}</p>
-                </div>
-                <div className="border border-border rounded-lg p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">Promedio/Ruta</p>
-                  <p className="text-lg sm:text-2xl font-semibold text-info">
-                    {stats.efficiency.promedioDistanciaPorRuta.toFixed(1)}
-                    <span className="text-sm text-muted-foreground ml-1">km</span>
-                  </p>
-                </div>
-                <div className="border border-border rounded-lg p-4 bg-muted">
-                  <p className="text-xs text-muted-foreground mb-1">Costo por km</p>
-                  <p className="text-lg sm:text-2xl font-semibold text-warning">Q {stats.costs.costoPorKm.toFixed(3)}</p>
-                </div>
+                <StatCard label="km/Litro" value={stats.efficiency.kmPorLitro.toFixed(2)} size="sm" accent="success" />
+                <StatCard label="km/Galón" value={stats.efficiency.kmPorGalon.toFixed(2)} size="sm" accent="success" />
+                <StatCard label="Promedio/Ruta" value={stats.efficiency.promedioDistanciaPorRuta.toFixed(1)} unit="km" size="sm" accent="info" />
+                <StatCard label="Costo por km" value={`Q ${stats.costs.costoPorKm.toFixed(3)}`} size="sm" accent="warning" />
               </div>
             </div>
 
