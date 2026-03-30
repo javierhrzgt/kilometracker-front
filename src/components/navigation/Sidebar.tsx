@@ -55,7 +55,7 @@ export function Sidebar({ className }: SidebarProps) {
   return (
     <div
       className={cn(
-        "hidden md:flex flex-col border-r border-border bg-background transition-all duration-300",
+        "hidden md:flex flex-col border-r border-border bg-sidebar transition-all duration-300",
         isCollapsed ? "w-16" : "w-60",
         className
       )}

@@ -13,9 +13,6 @@ export async function POST(request) {
       );
     }
 
-    console.log('Intentando login con:', email);
-    console.log('URL de API:', `${process.env.API_BASE_URL}/api/auth/login`);
-
     // Llamar a tu API externa
     const response = await fetch(`${process.env.API_BASE_URL}/api/auth/login`, {
       method: 'POST',
@@ -44,7 +41,7 @@ export async function POST(request) {
     // Si la API externa devuelve error
     if (!response.ok) {
       return NextResponse.json(
-        { error: data.message || 'Error de autenticación' },
+        { error: data.error || 'Error de autenticación' },
         { status: response.status }
       );
     }
@@ -62,7 +59,6 @@ export async function POST(request) {
       );
     }
 
-    console.log('Login exitoso para:', user?.email);
 
     // Crear respuesta con cookie HttpOnly
     const cookieResponse = NextResponse.json(
