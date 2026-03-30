@@ -61,7 +61,7 @@ describe("POST /api/auth/login", () => {
     });
 
     const request = {
-      json: async () => ({ email: "a@b.com", password: "pass123" }),
+      json: async () => ({ email: "a@b.com", password: "test-only-not-a-secret" }),
     } as any;
 
     const res = await POST(request);
@@ -77,7 +77,7 @@ describe("POST /api/auth/login", () => {
     });
 
     const request = {
-      json: async () => ({ email: "a@b.com", password: "pass123" }),
+      json: async () => ({ email: "a@b.com", password: "test-only-not-a-secret" }),
     } as any;
 
     const res = await POST(request);
@@ -101,7 +101,7 @@ describe("POST /api/auth/login", () => {
     });
 
     const request = {
-      json: async () => ({ email: "a@b.com", password: "pass123" }),
+      json: async () => ({ email: "a@b.com", password: "test-only-not-a-secret" }),
     } as any;
 
     const res = await POST(request);
