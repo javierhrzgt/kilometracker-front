@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent } from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { SelectNative } from "@/components/ui/select-native";
 import { DateRangeField } from "@/components/ui/DateRangeField";
 import { CheckCircle2, AlertCircle } from "lucide-react";
 
@@ -223,10 +224,9 @@ function AddRouteForm() {
               {/* Vehículo */}
               <div className="space-y-2">
                 <Label htmlFor="vehicleAlias">Vehículo *</Label>
-                <select
+                <SelectNative
                   id="vehicleAlias"
                   disabled={loading}
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-base ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm"
                   {...register("vehicleAlias")}
                 >
                   <option value="">Selecciona un vehículo</option>
@@ -235,7 +235,7 @@ function AddRouteForm() {
                       {vehicle.alias} - {vehicle.marca} ({vehicle.plates})
                     </option>
                   ))}
-                </select>
+                </SelectNative>
                 {errors.vehicleAlias?.message && (
                   <p className="text-xs text-destructive mt-1">{errors.vehicleAlias.message}</p>
                 )}

@@ -14,6 +14,7 @@ import { FuelEfficiencyLineChart } from "@/components/charts/FuelEfficiencyLineC
 import { FuelComposedChart } from "@/components/charts/FuelComposedChart";
 import { EmptyState } from "@/components/ui/empty-state";
 import { Fuel } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface AnalyticsSeries {
   distancia: Array<{ period: string; label: string; value: number }>;
@@ -25,6 +26,15 @@ interface AnalyticsData {
   series: AnalyticsSeries;
 }
 
+type Period = "1m" | "3m" | "6m" | "1y";
+
+const PERIOD_LABELS: Record<Period, string> = {
+  "1m": "1m",
+  "3m": "3m",
+  "6m": "6m",
+  "1y": "1a",
+};
+
 export default function FuelAnalysisPage() {
   const params = useParams<{ alias: string }>();
   const alias: string = params.alias;
@@ -32,10 +42,11 @@ export default function FuelAnalysisPage() {
   const [analysis, setAnalysis] = useState<FuelAnalysis | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
+  const [period, setPeriod] = useState<Period>("6m");
   const router = useRouter();
 
-  const { data: analyticsRaw } = useApiData<{ success: boolean; data: AnalyticsData }>(
-    alias ? `/api/vehicles/${alias}/analytics?period=6m` : null
+  const { data: analyticsRaw, loading: analyticsLoading } = useApiData<{ success: boolean; data: AnalyticsData }>(
+    alias ? `/api/vehicles/${alias}/analytics?period=${period}` : null
   );
   const analytics = analyticsRaw?.data ?? null;
 
@@ -233,9 +244,29 @@ export default function FuelAnalysisPage() {
               </div>
             </div>
 
-            {/* Charts — Histórico 6 meses */}
-            {analytics && (
-              <>
+            {/* Charts — selector de período */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base sm:text-lg font-medium text-foreground">Histórico</h3>
+                <div className="flex rounded-lg border border-border overflow-hidden">
+                  {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPeriod(p)}
+                      className={cn(
+                        "px-3 py-1.5 text-xs font-medium transition-colors border-r border-border last:border-r-0",
+                        period === p
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      )}
+                    >
+                      {PERIOD_LABELS[p]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={cn("space-y-4 transition-opacity duration-200", analyticsLoading && "opacity-50")}>
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                   <Card>
                     <CardHeader className="pb-2">
@@ -244,7 +275,7 @@ export default function FuelAnalysisPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <FuelBarChart data={analytics.series.costoCombustible} />
+                      <FuelBarChart data={analytics?.series.costoCombustible ?? []} />
                     </CardContent>
                   </Card>
                   <Card>
@@ -254,7 +285,7 @@ export default function FuelAnalysisPage() {
                       </CardTitle>
                     </CardHeader>
                     <CardContent>
-                      <FuelEfficiencyLineChart data={analytics.series.eficiencia} />
+                      <FuelEfficiencyLineChart data={analytics?.series.eficiencia ?? []} />
                     </CardContent>
                   </Card>
                 </div>
@@ -267,8 +298,8 @@ export default function FuelAnalysisPage() {
                   </CardHeader>
                   <CardContent>
                     <FuelComposedChart
-                      data={analytics.series.eficiencia.map((e) => {
-                        const fuel = analytics.series.costoCombustible.find(
+                      data={(analytics?.series.eficiencia ?? []).map((e) => {
+                        const fuel = analytics?.series.costoCombustible.find(
                           (f) => f.period === e.period
                         );
                         return { ...e, costo: fuel?.value ?? 0 };
@@ -276,8 +307,8 @@ export default function FuelAnalysisPage() {
                     />
                   </CardContent>
                 </Card>
-              </>
-            )}
+              </div>
+            </div>
 
             {/* Botón para ver historial */}
             <div className="text-center pt-2">

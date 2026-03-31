@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Vehicle } from "@/Types";
+import { Vehicle, Route, Refuel } from "@/Types";
+import { formatDateForDisplay } from "@/lib/dateUtils";
 import { useVehicle } from "@/contexts/VehicleContext";
 import { useUser } from "@/contexts/UserContext";
 import { useApiData } from "@/hooks/useApiData";
@@ -15,7 +16,9 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { KmAreaChart } from "@/components/charts/KmAreaChart";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Car, Route, Fuel, Wrench, Bell, Plus } from "lucide-react";
+import { Car, RouteIcon, Fuel, Wrench, Bell, TrendingUp, TrendingDown } from "lucide-react";
+import { useUpcomingCounts } from "@/hooks/useUpcomingCounts";
+import { Badge } from "@/components/ui/badge";
 
 interface DashboardSummary {
   totalVehicles: number;
@@ -45,6 +48,11 @@ interface DashboardData {
   alerts: DashboardAlert[];
 }
 
+interface PaginatedResponse<T> {
+  data: T[];
+  meta: { total: number; page: number; limit: number };
+}
+
 interface AnalyticsData {
   vehicle: { alias: string; marca: string; modelo: string };
   period: string;
@@ -66,6 +74,7 @@ function getGreeting(): string {
 export default function Dashboard() {
   const { vehicles, isLoading, error: vehicleError, refreshVehicles } = useVehicle();
   const { user } = useUser();
+  const { maintenanceByVehicle } = useUpcomingCounts();
   const [error, setError] = useState<string>("");
   const [showInactive, setShowInactive] = useState<boolean>(false);
   const router = useRouter();
@@ -79,6 +88,8 @@ export default function Dashboard() {
   const { data: analyticsRaw } = useApiData<{ success: boolean; data: AnalyticsData }>(
     firstAlias ? `/api/vehicles/${firstAlias}/analytics?period=6m` : null
   );
+  const { data: recentRoutes } = useApiData<PaginatedResponse<Route>>("/api/routes?limit=5");
+  const { data: recentRefuels } = useApiData<PaginatedResponse<Refuel>>("/api/refuels?limit=5");
 
   useEffect(() => {
     if (vehicleError) setError(vehicleError);
@@ -103,18 +114,33 @@ export default function Dashboard() {
   const alerts = dashboard?.alerts ?? [];
   const filteredVehicles = showInactive ? vehicles : activeVehicles;
 
+  const efficiencyByVehicle = useMemo(
+    () => Object.fromEntries((dashboard?.vehicles ?? []).map((v) => [v.alias, v.efficiency.kmPorLitro])),
+    [dashboard]
+  );
+
+  const recentActivity = useMemo(() => {
+    const routes = (recentRoutes?.data ?? []).map((r) => ({ ...r, type: "route" as const }));
+    const refuels = (recentRefuels?.data ?? []).map((r) => ({ ...r, type: "refuel" as const }));
+    return [...routes, ...refuels]
+      .sort((a, b) => new Date(b.fecha).getTime() - new Date(a.fecha).getTime())
+      .slice(0, 5);
+  }, [recentRoutes, recentRefuels]);
+
+  const distanceSeries = analytics?.series.distancia ?? [];
+  const currentMonthKm = distanceSeries.at(-1)?.value ?? 0;
+  const prevMonthKm = distanceSeries.at(-2)?.value ?? null;
+  const deltaPercent =
+    prevMonthKm !== null && prevMonthKm > 0
+      ? Math.round(((currentMonthKm - prevMonthKm) / prevMonthKm) * 100)
+      : null;
+
   if (isLoading) {
     return (
       <>
         <PageHeader
           title="Dashboard"
           description="Vista general de tus vehículos"
-          actions={
-            <Button onClick={() => router.push("/add-vehicle")}>
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Vehículo
-            </Button>
-          }
         />
         <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
@@ -143,12 +169,6 @@ export default function Dashboard() {
             ? `Vehículo activo: ${activeVehicles[0].marca} ${activeVehicles[0].modelo}`
             : "Gestiona y visualiza tus vehículos"
         }
-        actions={
-          <Button onClick={() => router.push("/add-vehicle")}>
-            <Plus className="h-4 w-4 mr-2" />
-              Agregar Vehículo
-          </Button>
-        }
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 space-y-6">
@@ -164,10 +184,10 @@ export default function Dashboard() {
           <StatCard
             label="Km este mes"
             value={`${(summary?.kmThisMonth ?? 0).toLocaleString()} km`}
-            icon={<Route className="h-5 w-5" />}
+            icon={<RouteIcon className="h-5 w-5" />}
           />
           <StatCard
-            label="Gasto últimos 30 días"
+            label="Gasto 30 días"
             value={`Q ${(summary?.totalSpentLast30Days ?? 0).toFixed(2)}`}
             icon={<Fuel className="h-5 w-5" />}
           />
@@ -190,89 +210,124 @@ export default function Dashboard() {
           />
         </div>
 
-        {/* Analytics + Sidebar Grid */}
+        {/* Analytics — móvil: sparkline + insight, desktop: gráfico completo + sidebar */}
         {firstAlias && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-            {/* KmAreaChart — 2/3 width */}
-            <Card className="lg:col-span-2">
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base font-semibold">
-                  Kilómetros por mes · {firstAlias}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <KmAreaChart data={analytics?.series.distancia ?? []} />
+          <>
+            {/* Móvil: sparkline compacto */}
+            <Card className="block lg:hidden">
+              <CardContent className="p-4">
+                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">
+                  Kilómetros · {firstAlias}
+                </p>
+                <KmAreaChart data={distanceSeries} compact />
+                <div className="flex items-center justify-between mt-2">
+                  <p className="text-lg font-bold">
+                    {currentMonthKm.toLocaleString()} km este mes
+                  </p>
+                  {deltaPercent !== null && (
+                    <Badge variant={deltaPercent >= 0 ? "secondary" : "outline"} className="flex items-center gap-1">
+                      {deltaPercent >= 0
+                        ? <TrendingUp className="h-3 w-3 text-success" />
+                        : <TrendingDown className="h-3 w-3 text-destructive" />}
+                      {deltaPercent >= 0 ? "+" : ""}{deltaPercent}%
+                    </Badge>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
-            {/* Right column: alerts + quick actions */}
-            <div className="space-y-4">
-              {/* Alerts */}
-              {alerts.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                      <Wrench className="h-4 w-4 text-warning" />
-                      Próximos servicios
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <ul className="space-y-2">
-                      {alerts.slice(0, 4).map((alert, i) => (
-                        <li key={i} className="text-sm">
-                          <span className="font-medium text-foreground">
-                            {alert.vehicleAlias}
-                          </span>{" "}
-                          <span className="text-muted-foreground">
-                            — {alert.message}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </CardContent>
-                </Card>
-              )}
-
-              {/* Quick Actions */}
-              <Card>
+            {/* Desktop: gráfico completo + sidebar */}
+            <div className="hidden lg:grid lg:grid-cols-3 gap-4 sm:gap-6">
+              <Card className="lg:col-span-2">
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base font-semibold">
-                    Acciones rápidas
+                    Kilómetros por mes · {firstAlias}
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="grid grid-cols-2 gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push("/add-route")}
-                  >
-                    + Ruta
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push("/add-refuel")}
-                  >
-                    + Recarga
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push("/add-maintenance")}
-                  >
-                    + Servicio
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => router.push("/add-expense")}
-                  >
-                    + Gasto
-                  </Button>
+                <CardContent>
+                  <KmAreaChart data={distanceSeries} />
                 </CardContent>
               </Card>
+
+              <div className="space-y-4">
+                {alerts.length > 0 && (
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base font-semibold flex items-center gap-2">
+                        <Wrench className="h-4 w-4 text-warning" />
+                        Próximos servicios
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <ul className="space-y-2">
+                        {alerts.slice(0, 4).map((alert, i) => (
+                          <li key={i} className="text-sm">
+                            <span className="font-medium text-foreground">
+                              {alert.vehicleAlias}
+                            </span>{" "}
+                            <span className="text-muted-foreground">
+                              — {alert.message}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </CardContent>
+                  </Card>
+                )}
+
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-semibold">
+                      Acciones rápidas
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="grid grid-cols-2 gap-2">
+                    <Button variant="outline" size="sm" onClick={() => router.push("/add-route")}>
+                      + Ruta
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => router.push("/add-refuel")}>
+                      + Recarga
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => router.push("/add-maintenance")}>
+                      + Servicio
+                    </Button>
+                    <Button variant="outline" size="sm" onClick={() => router.push("/add-expense")}>
+                      + Gasto
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
             </div>
-          </div>
+          </>
+        )}
+
+        {/* Actividad reciente */}
+        {recentActivity.length > 0 && (
+          <section>
+            <h2 className="text-base font-semibold mb-3">Actividad reciente</h2>
+            <div className="rounded-xl border border-border overflow-hidden">
+              {recentActivity.map((item) => (
+                <div key={item._id} className="flex items-center gap-3 px-4 py-3 bg-card border-b border-border last:border-b-0">
+                  <div className={`p-2 rounded-lg shrink-0 ${item.type === "route" ? "bg-success/10 text-success" : "bg-info/10 text-info"}`}>
+                    {item.type === "route"
+                      ? <RouteIcon className="h-4 w-4" />
+                      : <Fuel className="h-4 w-4" />}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{item.vehicleAlias}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {item.type === "route"
+                        ? `${item.distanciaRecorrida} km recorridos`
+                        : `Q ${Number(item.cantidadGastada).toFixed(2)}`}
+                    </p>
+                  </div>
+                  <p className="text-xs text-muted-foreground shrink-0">
+                    {formatDateForDisplay(item.fecha)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
         )}
 
         {/* Vehicles Section */}
@@ -328,6 +383,8 @@ export default function Dashboard() {
                   key={vehicle._id}
                   vehicle={vehicle}
                   onDelete={handleDelete}
+                  upcomingMaintenanceCount={maintenanceByVehicle[vehicle.alias] ?? 0}
+                  kmPorLitro={efficiencyByVehicle[vehicle.alias]}
                 />
               ))}
             </div>

@@ -74,7 +74,7 @@ export async function POST(request) {
       httpOnly: true,      // No accesible desde JavaScript
       secure: process.env.NODE_ENV === 'production', // Solo HTTPS en producción
       sameSite: 'strict',  // Protección CSRF
-      maxAge: 86400,       // 24 horas
+      maxAge: 60 * 60 * 24 * 7, // 7 días — alineado con JWT_EXPIRE
       path: '/',
     });
 

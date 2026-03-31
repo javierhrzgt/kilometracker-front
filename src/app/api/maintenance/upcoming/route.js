@@ -2,9 +2,16 @@ import { NextResponse } from 'next/server';
 import { bffFetch } from '@/lib/backendFetch';
 
 // GET /api/maintenance/upcoming - Get upcoming maintenance
-export async function GET() {
+export async function GET(request) {
   try {
-    const response = await bffFetch('/api/maintenance/upcoming');
+    const { searchParams } = new URL(request.url);
+    const vehicleAlias = searchParams.get('vehicleAlias');
+
+    const backendParams = new URLSearchParams();
+    if (vehicleAlias) backendParams.append('vehicleAlias', vehicleAlias);
+
+    const query = backendParams.toString();
+    const response = await bffFetch(`/api/maintenance/upcoming${query ? `?${query}` : ''}`);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));

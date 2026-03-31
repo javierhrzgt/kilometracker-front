@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FilterPanel } from "@/components/ui/FilterPanel";
-import { Plus, Edit, Trash2, Check, AlertCircle } from "lucide-react";
+import { Edit, Trash2, Check, AlertCircle } from "lucide-react";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { CardSkeleton } from "@/components/ui/card-skeleton";
 import { Pagination } from "@/components/ui/Pagination";
@@ -148,12 +148,6 @@ export default function RefuelsHistory() {
     <>
       <PageHeader
         title="Recargas"
-        actions={
-          <Button onClick={() => router.push("/add-refuel")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Agregar Recarga
-          </Button>
-        }
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -216,7 +210,7 @@ export default function RefuelsHistory() {
           </div>
         </FilterPanel>
 
-        <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
           <StatCard label="Recargas" value={pagination?.total ?? refuels.length} size="md" />
           <StatCard label="Total Gastado" value={`Q ${totalGastado.toFixed(2)}`} size="md" accent="info" />
           <StatCard label="Total Galones" value={totalGalones.toFixed(2)} unit="gal" size="md" />

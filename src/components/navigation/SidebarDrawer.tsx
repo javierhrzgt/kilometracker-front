@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { useUser } from "@/contexts/UserContext";
 import { useUpcomingCounts } from "@/hooks/useUpcomingCounts";
 import {
@@ -40,8 +40,17 @@ interface SidebarDrawerProps {
 
 export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
   const router = useRouter();
+  const pathname = usePathname();
   const { isAdmin } = useUser();
   const { maintenanceCount, expensesCount } = useUpcomingCounts();
+
+  const activeSection = (() => {
+    if (pathname.startsWith("/routes") || pathname === "/add-route") return "routes";
+    if (pathname.startsWith("/refuels") || pathname === "/add-refuel" || pathname.startsWith("/fuel-analysis")) return "fuel";
+    if (pathname.startsWith("/maintenance") || pathname === "/add-maintenance" || pathname.startsWith("/upcoming-maintenance")) return "maintenance";
+    if (pathname.startsWith("/expenses") || pathname === "/add-expense" || pathname.startsWith("/upcoming-expenses")) return "expenses";
+    return "vehicles";
+  })();
 
   const handleNavClick = () => {
     // Close drawer when navigation item is clicked
@@ -63,7 +72,7 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-80 p-0">
+      <SheetContent side="left" className="w-[min(85vw,20rem)] p-0">
         <SheetHeader className="p-4 border-b border-border">
           <SheetTitle className="flex items-center gap-2">
             <Car className="h-6 w-6 text-primary" />
@@ -93,7 +102,7 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
             <NavGroup
               title="Vehículos"
               icon={<Car className="h-4 w-4" />}
-              defaultOpen={true}
+              defaultOpen={activeSection === "vehicles"}
             >
               <NavItem
                 href="/dashboard"
@@ -113,6 +122,7 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
             <NavGroup
               title="Rutas y Viajes"
               icon={<Route className="h-4 w-4" />}
+              defaultOpen={activeSection === "routes"}
             >
               <NavItem
                 href="/routes-history"
@@ -132,6 +142,7 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
             <NavGroup
               title="Combustible"
               icon={<Fuel className="h-4 w-4" />}
+              defaultOpen={activeSection === "fuel"}
             >
               <NavItem
                 href="/refuels-history"
@@ -157,6 +168,7 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
             <NavGroup
               title="Mantenimiento"
               icon={<Wrench className="h-4 w-4" />}
+              defaultOpen={activeSection === "maintenance"}
             >
               <NavItem
                 href="/maintenance-history"
@@ -183,6 +195,7 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
             <NavGroup
               title="Gastos"
               icon={<Receipt className="h-4 w-4" />}
+              defaultOpen={activeSection === "expenses"}
             >
               <NavItem
                 href="/expenses-history"
@@ -210,33 +223,6 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
                 badge={expensesCount > 0 ? expensesCount : undefined}
               />
             </NavGroup>
-
-            <Separator className="my-2" />
-
-            {/* Quick Actions */}
-            <div className="px-3 py-2">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">
-                ACCIONES RÁPIDAS
-              </p>
-            </div>
-            <NavItem
-              href="/add-route"
-              icon={<Plus className="h-4 w-4" />}
-              label="Nueva ruta"
-              onClick={handleNavClick}
-            />
-            <NavItem
-              href="/add-refuel"
-              icon={<Plus className="h-4 w-4" />}
-              label="Nueva recarga"
-              onClick={handleNavClick}
-            />
-            <NavItem
-              href="/add-expense"
-              icon={<Plus className="h-4 w-4" />}
-              label="Nuevo gasto"
-              onClick={handleNavClick}
-            />
 
             <Separator className="my-2" />
 

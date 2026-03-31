@@ -284,7 +284,7 @@ export default function AdminUsers() {
 
         {/* Metrics */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard label="Total Usuarios" value={totalUsers} icon={<Users className="h-5 w-5" />} />
+          <StatCard label="Total" value={totalUsers} icon={<Users className="h-5 w-5" />} />
           <StatCard label="Activos" value={activeUsers} icon={<UserCheck className="h-5 w-5" />} accent="success" />
           <StatCard label="Admins" value={adminUsers} icon={<ShieldCheck className="h-5 w-5" />} accent="purple" />
           <StatCard label="Inactivos" value={inactiveUsers} icon={<UserMinus className="h-5 w-5" />}
@@ -298,7 +298,57 @@ export default function AdminUsers() {
           <span className="text-sm text-foreground">Mostrar usuarios inactivos</span>
         </label>
 
-        {/* Table */}
+        {/* Mobile card list */}
+        <div className="block md:hidden space-y-3">
+          {users.length === 0 ? (
+            <p className="py-10 text-center text-muted-foreground text-sm">
+              No se encontraron usuarios
+            </p>
+          ) : (
+            users.map((user) => (
+              <div key={user._id} className="rounded-xl border border-border bg-card p-4">
+                <div className="flex items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center text-sm font-bold shrink-0">
+                    {user.username.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="font-medium">
+                        {user.username}
+                        {user._id === currentUser._id && (
+                          <span className="ml-1 text-xs text-muted-foreground">(Tú)</span>
+                        )}
+                      </span>
+                      <Badge variant={roleBadgeVariant(user.role)}>{roleLabel(user.role)}</Badge>
+                      <Badge variant={user.isActive ? "success" : "muted"}>
+                        {user.isActive ? "Activo" : "Inactivo"}
+                      </Badge>
+                    </div>
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{user.email}</p>
+                  </div>
+                  {user._id !== currentUser._id && canManageUser(user) && (
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-11 w-11 shrink-0"
+                      onClick={() => setActiveSheetUserId(user._id)}
+                    >
+                      <MoreHorizontal className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+                <div className="mt-2 pt-2 border-t border-border/50">
+                  <p className="text-xs text-muted-foreground">
+                    Registro: {formatDateForDisplay(user.createdAt)}
+                  </p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden md:block">
         <Card>
           <Table>
             <TableHeader>
@@ -529,6 +579,7 @@ export default function AdminUsers() {
             </TableBody>
           </Table>
         </Card>
+        </div>
       </main>
 
       {/* Roles Info Dialog */}

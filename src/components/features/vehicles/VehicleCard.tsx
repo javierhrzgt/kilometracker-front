@@ -17,9 +17,11 @@ import { MoreHorizontal, BarChart2, Fuel, Pencil, Trash2 } from "lucide-react";
 interface VehicleCardProps {
   vehicle: Vehicle;
   onDelete?: (alias: string) => void;
+  upcomingMaintenanceCount?: number;
+  kmPorLitro?: number;
 }
 
-export function VehicleCard({ vehicle, onDelete }: VehicleCardProps) {
+export function VehicleCard({ vehicle, onDelete, upcomingMaintenanceCount = 0, kmPorLitro }: VehicleCardProps) {
   const router = useRouter();
 
   return (
@@ -42,7 +44,12 @@ export function VehicleCard({ vehicle, onDelete }: VehicleCardProps) {
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {vehicle.isActive ? (
-              <div className="w-2 h-2 rounded-full bg-success mt-1" />
+              <div className="flex items-center gap-1 mt-1">
+                <div className="w-2 h-2 rounded-full bg-success" />
+                {upcomingMaintenanceCount > 0 && (
+                  <div className="w-2 h-2 rounded-full bg-warning" />
+                )}
+              </div>
             ) : (
               <span className="text-xs text-muted-foreground font-medium">Inactivo</span>
             )}
@@ -107,6 +114,12 @@ export function VehicleCard({ vehicle, onDelete }: VehicleCardProps) {
             <span className="text-muted-foreground">Total</span>
             <span className="text-muted-foreground">
               {vehicle.kilometrajeTotal.toLocaleString()} km
+            </span>
+          </div>
+          <div className="flex justify-between text-xs text-muted-foreground pt-2 border-t border-border mt-1">
+            <span>Eficiencia</span>
+            <span className="font-medium text-foreground">
+              {kmPorLitro ? `${kmPorLitro} km/L` : "—"}
             </span>
           </div>
         </div>

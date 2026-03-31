@@ -28,6 +28,22 @@ const accentClass: Record<Accent, string> = {
   destructive: "text-destructive",
 };
 
+const accentBorder: Record<Accent, string> = {
+  info:        "border-l-4 border-l-info",
+  warning:     "border-l-4 border-l-warning",
+  success:     "border-l-4 border-l-success",
+  purple:      "border-l-4 border-l-purple",
+  destructive: "border-l-4 border-l-destructive",
+};
+
+const accentIconClass: Record<Accent, string> = {
+  info:        "bg-info/10 text-info",
+  warning:     "bg-warning/10 text-warning",
+  success:     "bg-success/10 text-success",
+  purple:      "bg-purple/10 text-purple",
+  destructive: "bg-destructive/10 text-destructive",
+};
+
 const TrendIcon = ({ trend }: { trend?: "up" | "down" | "neutral" }) => {
   if (trend === "up")      return <TrendingUp className="h-3 w-3 text-success" />;
   if (trend === "down")    return <TrendingDown className="h-3 w-3 text-destructive" />;
@@ -52,12 +68,12 @@ export function StatCard({
   // Icon layout — matches former MetricCard style
   if (icon) {
     return (
-      <Card className={cn("hover:shadow-depth-2 transition-elevation", className)}>
-        <CardContent className="p-5">
+      <Card className={cn("hover:shadow-depth-2 transition-elevation", accent && accentBorder[accent], className)}>
+        <CardContent className="p-3 sm:p-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-muted-foreground truncate">{label}</p>
-              <p className={cn("mt-1 text-2xl font-bold truncate", valueColor)}>{value}</p>
+              <p className="text-xs sm:text-sm font-medium text-muted-foreground line-clamp-2 leading-snug">{label}</p>
+              <p className={cn("mt-1 text-xl sm:text-2xl font-bold leading-tight", valueColor)}>{value}</p>
               {subtitle && (
                 <p className="mt-1 text-xs text-muted-foreground flex items-center gap-1">
                   <TrendIcon trend={trend} />
@@ -65,7 +81,7 @@ export function StatCard({
                 </p>
               )}
             </div>
-            <div className="p-2.5 bg-primary/10 rounded-lg text-primary shrink-0">
+            <div className={cn("p-2.5 rounded-lg shrink-0", accent ? accentIconClass[accent] : "bg-primary/10 text-primary")}>
               {icon}
             </div>
           </div>
@@ -88,9 +104,9 @@ export function StatCard({
   }[size];
 
   return (
-    <Card className={cn("hover:shadow-depth-2 transition-elevation", className)}>
+    <Card className={cn("hover:shadow-depth-2 transition-elevation", accent && accentBorder[accent], className)}>
       <CardContent className="p-4 sm:p-6">
-        <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 uppercase tracking-wide">
+        <p className="text-xs sm:text-sm font-medium text-muted-foreground mb-1 sm:mb-2 uppercase tracking-wide truncate">
           {label}
         </p>
         {children || (

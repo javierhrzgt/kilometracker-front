@@ -5,11 +5,11 @@
 
 @theme {
   /* Background & Foreground */
-  --color-background: hsl(0 0% 98%);
+  --color-background: hsl(218 20% 97%);
   --color-foreground: hsl(222.2 84% 4.9%);
 
-  /* Sidebar */
-  --color-sidebar: hsl(240 4% 96%);
+  /* Sidebar — navy-hued */
+  --color-sidebar: hsl(218 28% 94%);
 
   /* Card */
   --color-card: hsl(0 0% 100%);
@@ -19,57 +19,57 @@
   --color-popover: hsl(0 0% 100%);
   --color-popover-foreground: hsl(222.2 84% 4.9%);
 
-  /* Primary - Indigo for CTAs */
-  --color-primary: hsl(239 84% 58%);
+  /* Primary - Navy #14233A */
+  --color-primary: hsl(218 49% 15%);
   --color-primary-foreground: hsl(0 0% 100%);
 
   /* Secondary */
-  --color-secondary: hsl(210 40% 96.1%);
-  --color-secondary-foreground: hsl(222.2 47.4% 11.2%);
+  --color-secondary: hsl(218 20% 94%);
+  --color-secondary-foreground: hsl(218 49% 15%);
 
-  /* Muted */
-  --color-muted: hsl(210 40% 96.1%);
-  --color-muted-foreground: hsl(215.4 16.3% 46.9%);
+  /* Muted — navy-hued */
+  --color-muted: hsl(218 20% 94%);
+  --color-muted-foreground: hsl(218 12% 46%);
 
   /* Accent */
-  --color-accent: hsl(210 40% 96.1%);
-  --color-accent-foreground: hsl(222.2 47.4% 11.2%);
+  --color-accent: hsl(218 30% 92%);
+  --color-accent-foreground: hsl(218 49% 15%);
 
-  /* Destructive - Red for delete actions */
-  --color-destructive: hsl(0 84.2% 60.2%);
+  /* Destructive - Crimson #B71F24 */
+  --color-destructive: hsl(358 72% 42%);
   --color-destructive-foreground: hsl(0 0% 100%);
 
-  /* Success */
-  --color-success: hsl(142 76% 36%);
+  /* Success - Teal green (añadido para cubrir gap de la paleta) */
+  --color-success: hsl(158 52% 36%);
   --color-success-foreground: hsl(0 0% 100%);
 
-  /* Warning */
-  --color-warning: hsl(38 92% 50%);
+  /* Warning - Saffron gold */
+  --color-warning: hsl(43 72% 49%);
   --color-warning-foreground: hsl(0 0% 100%);
 
-  /* Info */
-  --color-info: hsl(217 91% 60%);
+  /* Info - Steel blue #86A0BB */
+  --color-info: hsl(210 28% 63%);
   --color-info-foreground: hsl(0 0% 100%);
 
-  /* Purple */
-  --color-purple: hsl(271 81% 56%);
+  /* Purple → Deep steel blue (reemplaza purple para roles admin) */
+  --color-purple: hsl(210 35% 40%);
   --color-purple-foreground: hsl(0 0% 100%);
 
-  /* Borders & Inputs */
-  --color-border: hsl(214.3 31.8% 91.4%);
-  --color-input: hsl(214.3 31.8% 91.4%);
-  --color-ring: hsl(239 84% 58%);
+  /* Borders & Inputs — navy undertone */
+  --color-border: hsl(218 18% 88%);
+  --color-input: hsl(218 18% 88%);
+  --color-ring: hsl(218 49% 15%);
 
   /* Radius */
   --radius: 0.5rem;
 
-  /* Chart Colors */
-  --color-chart-1: hsl(239 84% 67%);
-  --color-chart-2: hsl(160 60% 45%);
-  --color-chart-3: hsl(30 80% 55%);
-  --color-chart-4: hsl(280 65% 60%);
-  --color-chart-5: hsl(10 75% 58%);
-  --color-chart-6: hsl(200 70% 50%);
+  /* Chart Colors — navy palette */
+  --color-chart-1: hsl(218 60% 50%);   /* navy vibrante */
+  --color-chart-2: hsl(158 52% 42%);   /* teal-green */
+  --color-chart-3: hsl(43 72% 49%);    /* saffron-gold */
+  --color-chart-4: hsl(210 35% 55%);   /* steel blue */
+  --color-chart-5: hsl(358 55% 50%);   /* crimson claro */
+  --color-chart-6: hsl(218 15% 60%);   /* navy gris */
 }
 
 /* Domain color aliases — semantic tokens for app-specific concepts.
@@ -83,7 +83,7 @@
   --color-cat-total:       var(--color-foreground);
 
   /* User roles */
-  --color-role-root:  hsl(0 84% 60%);
+  --color-role-root:  hsl(358 72% 42%); /* crimson nuevo */
   --color-role-admin: var(--color-purple);
   --color-role-write: var(--color-info);
   --color-role-read:  var(--color-muted-foreground);
@@ -138,12 +138,12 @@
 .dark {
   --color-background:     hsl(240 10% 4%);
   --color-foreground:     hsl(0 0% 98%);
-  --color-sidebar:        hsl(240 8% 7%);
-  --color-card:           hsl(240 8% 10%);
+  --color-sidebar:        hsl(218 35% 10%);
+  --color-card:           hsl(218 30% 12%);
   --color-card-foreground: hsl(0 0% 98%);
   --color-popover:        hsl(240 8% 10%);
   --color-popover-foreground: hsl(0 0% 98%);
-  --color-primary:        hsl(239 84% 67%);
+  --color-primary:        hsl(214 55% 65%);
   --color-primary-foreground: hsl(0 0% 100%);
   --color-secondary:      hsl(240 5% 16%);
   --color-secondary-foreground: hsl(0 0% 98%);
@@ -151,14 +151,21 @@
   --color-muted-foreground: hsl(240 5% 65%);
   --color-accent:         hsl(240 5% 16%);
   --color-accent-foreground: hsl(0 0% 98%);
-  --color-destructive:    hsl(0 72% 51%);
+  --color-destructive:    hsl(358 65% 55%);
   --color-border:         hsl(240 5% 18%);
   --color-border-strong:  hsl(240 5% 25%);
   --color-input:          hsl(240 5% 16%);
-  --color-ring:           hsl(239 84% 67%);
+  --color-ring:           hsl(214 55% 65%);
   /* Extra surface tokens for depth layering */
   --color-card-elevated:  hsl(240 7% 13%);
   --color-surface-sunken: hsl(240 10% 6%);
+  /* Warning + chart overrides for dark mode */
+  --color-warning:   hsl(43 80% 58%);
+  --color-chart-1:   hsl(214 75% 68%);
+  --color-chart-2:   hsl(158 58% 52%);
+  --color-chart-3:   hsl(43 78% 62%);
+  --color-chart-4:   hsl(210 55% 68%);
+  --color-chart-5:   hsl(358 65% 62%);
 }
 
 /* Fix iOS Safari date input styling */

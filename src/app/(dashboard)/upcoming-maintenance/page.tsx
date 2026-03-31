@@ -2,31 +2,55 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import type { UpcomingMaintenance } from "@/Types";
+import type { UpcomingMaintenance, Vehicle } from "@/Types";
 import { formatDateForDisplay, getDaysUntilDate } from "@/lib/dateUtils";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { SelectNative } from "@/components/ui/select-native";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, Wrench, AlertCircle, Calendar } from "lucide-react";
+import { Plus, Calendar, AlertCircle } from "lucide-react";
+import { CardSkeleton } from "@/components/ui/card-skeleton";
+import { StatCard } from "@/components/features/stats/StatCard";
+import { FilterPanel } from "@/components/ui/FilterPanel";
+import { cn } from "@/lib/utils";
 
 export default function UpcomingMaintenancePage() {
   const [upcomingMaintenances, setUpcomingMaintenances] = useState<UpcomingMaintenance[]>([]);
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
+    fetchVehicles();
     fetchUpcomingMaintenances();
   }, []);
 
+  const fetchVehicles = async () => {
+    try {
+      const response = await fetch("/api/vehicles", { credentials: "include" });
+      if (response.ok) {
+        const data = await response.json();
+        setVehicles(data.data || []);
+      }
+    } catch (err) {
+      console.error("Error fetching vehicles:", err);
+    }
+  };
+
   const fetchUpcomingMaintenances = async () => {
     try {
-      const response = await fetch("/api/maintenance/upcoming", {
-        credentials: "include",
-      });
+      const params = new URLSearchParams();
+      if (selectedVehicle) params.append("vehicleAlias", selectedVehicle);
+      const query = params.toString();
+      const url = `/api/maintenance/upcoming${query ? `?${query}` : ""}`;
+
+      const response = await fetch(url, { credentials: "include" });
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -45,9 +69,20 @@ export default function UpcomingMaintenancePage() {
     }
   };
 
-  const getKmRemaining = (targetKm: number, currentKm: number) => {
-    return targetKm - currentKm;
+  const handleApplyFilters = () => {
+    setLoading(true);
+    fetchUpcomingMaintenances();
   };
+
+  const handleClearFilters = () => {
+    setSelectedVehicle("");
+    setTimeout(() => {
+      setLoading(true);
+      fetchUpcomingMaintenances();
+    }, 0);
+  };
+
+  const getKmRemaining = (targetKm: number, currentKm: number) => targetKm - currentKm;
 
   const getUrgencyBadgeVariant = (days?: number, kmRemaining?: number): "destructive" | "default" | "secondary" => {
     if (days !== undefined) {
@@ -114,11 +149,16 @@ export default function UpcomingMaintenancePage() {
         getKmRemaining(m.proximoServicioKm, m.vehicle.kilometrajeTotal) <= 500)
   ).length;
 
+  const activeFilterCount = selectedVehicle ? 1 : 0;
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center">
-        <div className="text-muted-foreground">Cargando...</div>
-      </div>
+      <>
+        <PageHeader title="Mantenimientos Próximos" />
+        <main className="page-container">
+          <CardSkeleton rows={4} />
+        </main>
+      </>
     );
   }
 
@@ -135,8 +175,7 @@ export default function UpcomingMaintenancePage() {
         }
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Error Message */}
+      <main className="page-container">
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
@@ -144,48 +183,47 @@ export default function UpcomingMaintenancePage() {
           </Alert>
         )}
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total</p>
-                  <p className="text-3xl font-semibold">{upcomingMaintenances.length}</p>
-                </div>
-                <Wrench className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-destructive/50 bg-destructive/5">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-destructive mb-1">Vencidos</p>
-                  <p className="text-3xl font-semibold text-destructive">{overdueCount}</p>
-                </div>
-                <Badge variant="destructive" className="text-lg px-3 py-1">
-                  {overdueCount}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="border-warning/50 bg-warning/10 shadow-sm hover:shadow-depth-3 transition-elevation">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-warning mb-1">Urgente</p>
-                  <p className="text-3xl font-semibold text-foreground">{urgentCount}</p>
-                </div>
-                <Badge variant="default" className="text-lg px-3 py-1 bg-warning text-warning-foreground">
-                  {urgentCount}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
+        <FilterPanel
+          onApply={handleApplyFilters}
+          onClear={handleClearFilters}
+          activeCount={activeFilterCount}
+          gridClassName="grid grid-cols-1 gap-4"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="vehicle">Vehículo</Label>
+            <SelectNative
+              id="vehicle"
+              value={selectedVehicle}
+              onChange={(e) => setSelectedVehicle(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle._id} value={vehicle.alias}>
+                  {vehicle.alias}
+                </option>
+              ))}
+            </SelectNative>
+          </div>
+        </FilterPanel>
+
+        {/* Stats */}
+        <div className="grid grid-cols-3 gap-3 sm:gap-4 mb-6">
+          <StatCard label="Total" value={upcomingMaintenances.length} size="md" />
+          <StatCard
+            label="Vencidos"
+            value={overdueCount}
+            size="md"
+            accent={overdueCount > 0 ? "destructive" : undefined}
+          />
+          <StatCard
+            label="Urgentes"
+            value={urgentCount}
+            size="md"
+            accent={urgentCount > 0 ? "warning" : undefined}
+          />
         </div>
 
-        {/* Maintenance Table */}
+        {/* Content */}
         {upcomingMaintenances.length === 0 ? (
           <Card>
             <CardContent className="text-center py-16">
@@ -214,8 +252,100 @@ export default function UpcomingMaintenancePage() {
                 Mantenimientos programados por fecha o kilometraje
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
+            <CardContent className="p-0 sm:p-6">
+
+              {/* Mobile card list */}
+              <div className="block md:hidden space-y-3 p-4">
+                {upcomingMaintenances.map((maintenance) => {
+                  const daysUntil = maintenance.proximoServicioFecha
+                    ? getDaysUntilDate(maintenance.proximoServicioFecha)
+                    : undefined;
+                  const kmRemaining =
+                    maintenance.proximoServicioKm && maintenance.vehicle?.kilometrajeTotal
+                      ? getKmRemaining(maintenance.proximoServicioKm, maintenance.vehicle.kilometrajeTotal)
+                      : undefined;
+                  const badgeVariant =
+                    daysUntil !== undefined
+                      ? getUrgencyBadgeVariant(daysUntil)
+                      : getUrgencyBadgeVariant(undefined, kmRemaining);
+                  const statusText =
+                    daysUntil !== undefined
+                      ? getStatusText(daysUntil)
+                      : getStatusText(undefined, kmRemaining);
+
+                  return (
+                    <div key={maintenance._id} className={cn("rounded-xl border border-border bg-card p-4", getUrgencyColor(daysUntil, kmRemaining))}>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <span className="font-semibold text-sm text-foreground">
+                              {maintenance.vehicle?.alias || maintenance.vehicleAlias}
+                            </span>
+                            <Badge variant="secondary">{maintenance.tipo}</Badge>
+                            <Badge variant={badgeVariant}>{statusText}</Badge>
+                          </div>
+                          {maintenance.vehicle && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {maintenance.vehicle.marca} {maintenance.vehicle.modelo}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                      <div className="mt-2 space-y-1">
+                        {maintenance.proximoServicioFecha && (
+                          <p className="text-sm text-foreground">
+                            <Calendar className="inline h-3 w-3 mr-1" />
+                            {formatDateForDisplay(maintenance.proximoServicioFecha)}
+                            {daysUntil !== undefined && (
+                              <span className="text-muted-foreground ml-1">
+                                {daysUntil < 0
+                                  ? `(${Math.abs(daysUntil)}d atrás)`
+                                  : daysUntil === 0
+                                  ? "(Hoy)"
+                                  : `(${daysUntil}d)`}
+                              </span>
+                            )}
+                          </p>
+                        )}
+                        {maintenance.proximoServicioKm && (
+                          <p className="text-sm font-medium text-foreground">
+                            {maintenance.proximoServicioKm.toLocaleString()} km
+                            {kmRemaining !== undefined && (
+                              <span className="text-muted-foreground ml-1 font-normal">
+                                {kmRemaining < 0
+                                  ? `(+${Math.abs(kmRemaining).toLocaleString()} km excedido)`
+                                  : `(${kmRemaining.toLocaleString()} km restantes)`}
+                              </span>
+                            )}
+                          </p>
+                        )}
+                      </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => router.push("/maintenance-history")}
+                        >
+                          Historial
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          className="flex-1"
+                          onClick={() => router.push("/add-maintenance")}
+                        >
+                          Registrar
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop table */}
+              <div className="hidden md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -238,12 +368,10 @@ export default function UpcomingMaintenancePage() {
                               maintenance.vehicle.kilometrajeTotal
                             )
                           : undefined;
-
                       const badgeVariant =
                         daysUntil !== undefined
                           ? getUrgencyBadgeVariant(daysUntil)
                           : getUrgencyBadgeVariant(undefined, kmRemaining);
-
                       const statusText =
                         daysUntil !== undefined
                           ? getStatusText(daysUntil)
@@ -294,9 +422,7 @@ export default function UpcomingMaintenancePage() {
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={badgeVariant}>
-                              {statusText}
-                            </Badge>
+                            <Badge variant={badgeVariant}>{statusText}</Badge>
                           </TableCell>
                           <TableCell className="text-right">
                             <div className="flex gap-2 justify-end">
@@ -321,6 +447,7 @@ export default function UpcomingMaintenancePage() {
                   </TableBody>
                 </Table>
               </div>
+
             </CardContent>
           </Card>
         )}

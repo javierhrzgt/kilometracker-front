@@ -19,16 +19,42 @@ interface DataPoint {
 
 interface KmAreaChartProps {
   data: DataPoint[];
+  compact?: boolean;
 }
 
-export function KmAreaChart({ data }: KmAreaChartProps) {
+export function KmAreaChart({ data, compact = false }: KmAreaChartProps) {
   const c = useChartColors();
 
   if (!data || data.length === 0) {
+    if (compact) return null;
     return (
       <div className="flex items-center justify-center h-48 text-sm text-muted-foreground">
         Sin datos para mostrar
       </div>
+    );
+  }
+
+  if (compact) {
+    return (
+      <ResponsiveContainer width="100%" height={48}>
+        <AreaChart data={data} margin={{ top: 4, right: 0, left: 0, bottom: 4 }}>
+          <defs>
+            <linearGradient id="kmGradientCompact" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="5%" stopColor={c.chart1} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={c.chart1} stopOpacity={0} />
+            </linearGradient>
+          </defs>
+          <Area
+            type="monotone"
+            dataKey="value"
+            stroke={c.chart1}
+            strokeWidth={2}
+            fill="url(#kmGradientCompact)"
+            dot={false}
+            activeDot={false}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
     );
   }
 

@@ -1,17 +1,18 @@
 "use client";
 
+"use client";
+
 import { useState, useEffect } from "react";
-import { useRouter, useParams } from "next/navigation";
+import { useParams } from "next/navigation";
 import type { Vehicle, VehicleStats } from "@/Types";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { CardSkeleton } from "@/components/ui/card-skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useApiData } from "@/hooks/useApiData";
 import { KmAreaChart } from "@/components/charts/KmAreaChart";
 import { MaintenanceCostBarChart } from "@/components/charts/MaintenanceCostBarChart";
+import { cn } from "@/lib/utils";
 
 interface AnalyticsData {
   series: {
@@ -20,6 +21,15 @@ interface AnalyticsData {
   };
 }
 
+type Period = "1m" | "3m" | "6m" | "1y";
+
+const PERIOD_LABELS: Record<Period, string> = {
+  "1m": "1m",
+  "3m": "3m",
+  "6m": "6m",
+  "1y": "1a",
+};
+
 export default function VehicleStatsPage() {
   const params = useParams<{ alias: string }>();
   const alias: string = params.alias;
@@ -27,10 +37,10 @@ export default function VehicleStatsPage() {
   const [vehicle, setVehicle] = useState<Vehicle | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [period, setPeriod] = useState<Period>("6m");
 
-  const { data: analyticsRaw } = useApiData<{ success: boolean; data: AnalyticsData }>(
-    alias ? `/api/vehicles/${alias}/analytics?period=6m` : null
+  const { data: analyticsRaw, loading: analyticsLoading } = useApiData<{ success: boolean; data: AnalyticsData }>(
+    alias ? `/api/vehicles/${alias}/analytics?period=${period}` : null
   );
   const analytics = analyticsRaw?.data ?? null;
 
@@ -79,21 +89,6 @@ export default function VehicleStatsPage() {
       <PageHeader
         title={alias}
         description={vehicle ? `${vehicle.marca} ${vehicle.modelo} · ${vehicle.plates}` : "Estadísticas del vehículo"}
-        actions={
-          <div className="flex gap-2 flex-wrap">
-            <Button onClick={() => router.push(`/add-route?vehicle=${alias}`)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Ruta
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => router.push(`/add-refuel?vehicle=${alias}`)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Agregar Recarga
-            </Button>
-          </div>
-        }
       />
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
@@ -198,9 +193,29 @@ export default function VehicleStatsPage() {
               </div>
             </div>
 
-            {/* Charts — Histórico 6 meses */}
-            {analytics && (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            {/* Charts — selector de período */}
+            <div>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base sm:text-lg font-medium text-foreground">Histórico</h3>
+                <div className="flex rounded-lg border border-border overflow-hidden">
+                  {(Object.keys(PERIOD_LABELS) as Period[]).map((p) => (
+                    <button
+                      key={p}
+                      onClick={() => setPeriod(p)}
+                      className={cn(
+                        "px-3 py-1.5 text-xs font-medium transition-colors border-r border-border last:border-r-0",
+                        period === p
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                      )}
+                    >
+                      {PERIOD_LABELS[p]}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className={cn("grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 transition-opacity duration-200", analyticsLoading && "opacity-50")}>
                 <Card>
                   <CardHeader className="pb-2">
                     <CardTitle className="text-base font-semibold">
@@ -208,7 +223,7 @@ export default function VehicleStatsPage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <KmAreaChart data={analytics.series.distancia} />
+                    <KmAreaChart data={analytics?.series.distancia ?? []} />
                   </CardContent>
                 </Card>
                 <Card>
@@ -219,7 +234,7 @@ export default function VehicleStatsPage() {
                   </CardHeader>
                   <CardContent>
                     <MaintenanceCostBarChart
-                      data={analytics.series.costoMantenimiento.map((d) => ({
+                      data={(analytics?.series.costoMantenimiento ?? []).map((d) => ({
                         label: d.label,
                         value: d.value,
                       }))}
@@ -227,7 +242,7 @@ export default function VehicleStatsPage() {
                   </CardContent>
                 </Card>
               </div>
-            )}
+            </div>
 
             {/* Resumen */}
             {stats.statistics.totalRoutes > 0 && (

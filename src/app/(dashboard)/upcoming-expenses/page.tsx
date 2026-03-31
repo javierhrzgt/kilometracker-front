@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { UpcomingExpense, Vehicle } from "@/Types";
 import { useRouter } from "next/navigation";
 import { formatDateForDisplay } from "@/lib/dateUtils";
+import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
@@ -12,7 +13,10 @@ import { Label } from "@/components/ui/label";
 import { SelectNative } from "@/components/ui/select-native";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Plus, Calendar, DollarSign, AlertCircle, Filter } from "lucide-react";
+import { Plus, Calendar, AlertCircle } from "lucide-react";
+import { CardSkeleton } from "@/components/ui/card-skeleton";
+import { FilterPanel } from "@/components/ui/FilterPanel";
+import { StatCard } from "@/components/features/stats/StatCard";
 
 export default function UpcomingExpenses() {
   const [upcomingExpenses, setUpcomingExpenses] = useState<UpcomingExpense[]>([]);
@@ -122,11 +126,13 @@ export default function UpcomingExpenses() {
   const dueThisWeek = upcomingExpenses.filter(exp => calculateDaysUntilDue(exp.proximoPago) <= 7).length;
   const dueThisMonth = upcomingExpenses.filter(exp => calculateDaysUntilDue(exp.proximoPago) <= 30).length;
 
+  const activeFilterCount = selectedVehicle ? 1 : 0;
+
   if (loading) {
     return (
-      <div className="flex justify-center items-center">
-        <div className="text-muted-foreground">Cargando...</div>
-      </div>
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <CardSkeleton rows={4} />
+      </main>
     );
   }
 
@@ -152,86 +158,36 @@ export default function UpcomingExpenses() {
         )}
 
         {/* Filter */}
-        <Card className="mb-6 shadow-sm hover:shadow-depth-2 transition-elevation">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtrar
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4 items-end">
-              <div className="flex-1 space-y-2">
-                <Label htmlFor="vehicle">Vehículo</Label>
-                <SelectNative
-                  id="vehicle"
-                  value={selectedVehicle}
-                  onChange={(e) => setSelectedVehicle(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  {vehicles.map((vehicle) => (
-                    <option key={vehicle._id} value={vehicle.alias}>
-                      {vehicle.alias}
-                    </option>
-                  ))}
-                </SelectNative>
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleApplyFilter} className="shadow-sm hover:shadow-depth-2 transition-smooth">
-                  Aplicar
-                </Button>
-                <Button variant="outline" onClick={handleClearFilter} className="transition-smooth">
-                  Limpiar
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <FilterPanel
+          onApply={handleApplyFilter}
+          onClear={handleClearFilter}
+          activeCount={activeFilterCount}
+          gridClassName="grid grid-cols-1 gap-4"
+        >
+          <div className="space-y-2">
+            <Label>Vehículo</Label>
+            <SelectNative
+              value={selectedVehicle}
+              onChange={(e) => setSelectedVehicle(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle._id} value={vehicle.alias}>
+                  {vehicle.alias}
+                </option>
+              ))}
+            </SelectNative>
+          </div>
+        </FilterPanel>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="shadow-sm hover:shadow-depth-3 transition-elevation">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Próximos</p>
-                  <p className="text-3xl font-semibold">
-                    Q {totalUpcoming.toFixed(2)}
-                  </p>
-                </div>
-                <DollarSign className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm hover:shadow-depth-3 transition-elevation">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Esta Semana</p>
-                  <p className="text-3xl font-semibold">{dueThisWeek}</p>
-                </div>
-                <Badge variant="destructive" className="text-lg px-3 py-1">
-                  {dueThisWeek}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm hover:shadow-depth-3 transition-elevation">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Este Mes</p>
-                  <p className="text-3xl font-semibold">{dueThisMonth}</p>
-                </div>
-                <Badge variant="default" className="text-lg px-3 py-1">
-                  {dueThisMonth}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-6">
+          <StatCard label="Total Próximos" value={`Q ${totalUpcoming.toFixed(2)}`} size="md" />
+          <StatCard label="Esta Semana" value={dueThisWeek} size="md" accent="destructive" />
+          <StatCard label="Este Mes" value={dueThisMonth} size="md" accent="warning" />
         </div>
 
-        {/* Upcoming Expenses Table */}
+        {/* Upcoming Expenses List */}
         {upcomingExpenses.length === 0 ? (
           <Card>
             <CardContent className="text-center py-16">
@@ -241,71 +197,120 @@ export default function UpcomingExpenses() {
             </CardContent>
           </Card>
         ) : (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Calendar className="h-5 w-5" />
-                Próximos Pagos
-              </CardTitle>
-              <CardDescription>
-                Gastos recurrentes que vencen en los próximos 30 días
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Descripción</TableHead>
-                      <TableHead>Vehículo</TableHead>
-                      <TableHead>Categoría</TableHead>
-                      <TableHead>Próximo Pago</TableHead>
-                      <TableHead>Frecuencia</TableHead>
-                      <TableHead className="text-right">Monto</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {upcomingExpenses.map((expense) => {
-                      const daysUntilDue = calculateDaysUntilDue(expense.proximoPago);
-                      return (
-                        <TableRow key={expense._id}>
-                          <TableCell className="font-medium">
-                            <div className="flex items-center gap-2">
-                              {expense.descripcion}
-                              <Badge variant={getUrgencyBadgeVariant(daysUntilDue)}>
-                                {daysUntilDue === 0
-                                  ? "Hoy"
-                                  : daysUntilDue === 1
-                                  ? "Mañana"
-                                  : daysUntilDue < 0
-                                  ? `Vencido`
-                                  : `${daysUntilDue}d`}
+          <>
+            {/* Mobile card list */}
+            <div className="block md:hidden space-y-3">
+              {upcomingExpenses.map((expense) => {
+                const daysUntilDue = calculateDaysUntilDue(expense.proximoPago);
+                return (
+                  <div
+                    key={expense._id}
+                    className={cn("rounded-xl border p-4", getUrgencyColor(daysUntilDue))}
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-semibold text-sm text-foreground">
+                            {expense.vehicleAlias}
+                          </span>
+                          <Badge variant="outline">{getCategoryLabel(expense.categoria)}</Badge>
+                          <Badge variant={getUrgencyBadgeVariant(daysUntilDue)}>
+                            {daysUntilDue === 0
+                              ? "Hoy"
+                              : daysUntilDue === 1
+                              ? "Mañana"
+                              : daysUntilDue < 0
+                              ? "Vencido"
+                              : `${daysUntilDue}d`}
+                          </Badge>
+                        </div>
+                        <p className="text-sm font-medium text-foreground mt-1">
+                          {expense.descripcion}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="mt-2 space-y-1">
+                      <p className="text-sm text-foreground">
+                        <Calendar className="inline h-3 w-3 mr-1" />
+                        {formatDateForDisplay(expense.proximoPago)}
+                      </p>
+                      <Badge variant="secondary">{getFrequencyLabel(expense.frecuenciaRecurrencia)}</Badge>
+                    </div>
+                    <p className="text-xl font-bold text-foreground mt-2">
+                      Q {expense.monto.toFixed(2)}
+                    </p>
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Desktop table */}
+            <div className="hidden md:block">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Calendar className="h-5 w-5" />
+                    Próximos Pagos
+                  </CardTitle>
+                  <CardDescription>
+                    Gastos recurrentes que vencen en los próximos 30 días
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Descripción</TableHead>
+                        <TableHead>Vehículo</TableHead>
+                        <TableHead>Categoría</TableHead>
+                        <TableHead>Próximo Pago</TableHead>
+                        <TableHead>Frecuencia</TableHead>
+                        <TableHead className="text-right">Monto</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {upcomingExpenses.map((expense) => {
+                        const daysUntilDue = calculateDaysUntilDue(expense.proximoPago);
+                        return (
+                          <TableRow key={expense._id}>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center gap-2">
+                                {expense.descripcion}
+                                <Badge variant={getUrgencyBadgeVariant(daysUntilDue)}>
+                                  {daysUntilDue === 0
+                                    ? "Hoy"
+                                    : daysUntilDue === 1
+                                    ? "Mañana"
+                                    : daysUntilDue < 0
+                                    ? `Vencido`
+                                    : `${daysUntilDue}d`}
+                                </Badge>
+                              </div>
+                            </TableCell>
+                            <TableCell>{expense.vehicleAlias}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline">
+                                {getCategoryLabel(expense.categoria)}
                               </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>{expense.vehicleAlias}</TableCell>
-                          <TableCell>
-                            <Badge variant="outline">
-                              {getCategoryLabel(expense.categoria)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>{formatDateForDisplay(expense.proximoPago)}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">
-                              {getFrequencyLabel(expense.frecuenciaRecurrencia)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            Q {expense.monto.toFixed(2)}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+                            </TableCell>
+                            <TableCell>{formatDateForDisplay(expense.proximoPago)}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">
+                                {getFrequencyLabel(expense.frecuenciaRecurrencia)}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              Q {expense.monto.toFixed(2)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </>
         )}
       </main>
     </>
