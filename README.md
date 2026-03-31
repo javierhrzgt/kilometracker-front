@@ -1,36 +1,164 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# KilomeTracker — Frontend
 
-## Getting Started
+> Aplicación web mobile-first para gestión vehicular: kilómetros, combustible, mantenimiento y gastos.
 
-First, run the development server:
+![Estado](https://img.shields.io/badge/estado-en%20producci%C3%B3n-brightgreen)
+![Next.js](https://img.shields.io/badge/Next.js-16-000000)
+![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6)
+![Licencia](https://img.shields.io/badge/licencia-MIT-blue)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+**Demo:** [kilometracker.vercel.app](https://kilometracker.vercel.app)
+
+---
+
+## ¿Qué es KilomeTracker?
+
+KilomeTracker es una aplicación web de gestión vehicular orientada al mercado guatemalteco. Permite a conductores individuales y flotas pequeñas llevar un control completo de sus vehículos: kilómetros recorridos, consumo de combustible, historial de mantenimientos y todos los gastos asociados al vehículo.
+
+La app está diseñada con un enfoque **mobile-first** — la experiencia principal está pensada para el celular, con tarjetas de datos deslizables, filtros en bottom sheet y navegación inferior. En desktop escala a tablas y sidebar.
+
+Este repositorio es el frontend construido con Next.js 16 (App Router) que se conecta al [backend Express/MongoDB](../kilometracker-backend) mediante un patrón BFF (Backend for Frontend): todas las llamadas a la API pasan por rutas proxy de Next.js que mantienen el JWT en cookies HTTP-only, fuera del alcance de JavaScript del cliente.
+
+---
+
+## Funcionalidades
+
+- 🚗 **Dashboard de vehículos** — grid con métricas clave: km totales, estado activo, acceso rápido
+- 📋 **Historiales completos** — rutas, recargas, mantenimientos y gastos con filtros y paginación
+- ⛽ **Análisis de combustible** — eficiencia (km/litro, km/galón, costo/km) con gráficas interactivas
+- 🔧 **Recordatorios de mantenimiento** — próximos servicios por fecha o kilometraje
+- 💰 **Resumen de gastos** — desglose por categoría con gráfica donut, deducibles fiscales
+- 👥 **Panel de administración** — gestión de usuarios y roles (solo visible para admins)
+- 🌙 **Modo oscuro nativo** y diseño responsive (mobile cards / desktop tablas)
+
+---
+
+## Stack técnico
+
+| Capa | Tecnología | Versión |
+|------|-----------|---------|
+| Framework | Next.js (App Router) | ^16.1.7 |
+| UI Library | React | ^19.2.1 |
+| Lenguaje | TypeScript (strict) | ^5 |
+| Estilos | Tailwind CSS | v4 |
+| Componentes | shadcn/ui + Radix UI | — |
+| Formularios | React Hook Form + Zod | ^7.66 / ^4.1.13 |
+| Charts | Recharts | ^2.15.3 |
+| Iconos | lucide-react | ^0.555.0 |
+| Tests unitarios | Vitest | ^3 |
+| Tests e2e | Playwright | ^1.49.0 |
+| Compiler | React Compiler (babel-plugin) | 1.0.0 |
+| Package manager | npm | — |
+| Deploy | Vercel | — |
+
+---
+
+## Prerrequisitos
+
+- **Node.js** >= 18
+- **npm**
+- **Backend KilomeTracker** corriendo (local o en producción) — ver [kilometracker-backend](../kilometracker-backend)
+
+---
+
+## Setup local
+
+1. **Clona el repositorio:**
+   ```bash
+   git clone <url-del-repo>
+   cd kilometracker-front
+   ```
+
+2. **Instala las dependencias:**
+   ```bash
+   npm install
+   ```
+
+3. **Crea el archivo de entorno:**
+   ```bash
+   cp .env.example .env.local
+   # o crea .env.local manualmente
+   ```
+
+4. **Inicia el servidor de desarrollo:**
+   ```bash
+   npm run dev
+   ```
+
+   La app estará disponible en `http://localhost:3000`.
+
+---
+
+## Variables de entorno
+
+```env
+# .env.local
+
+# URL base del backend KilomeTracker (sin slash final)
+API_BASE_URL=https://tu-backend-url.com
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Estructura del proyecto
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```
+src/
+├── app/
+│   ├── page.tsx                      # Login
+│   ├── register/                     # Registro de usuario
+│   ├── forgot-password/              # Recuperar contraseña
+│   ├── reset-password/[token]/       # Resetear contraseña
+│   └── (dashboard)/                  # Rutas protegidas
+│       ├── dashboard/                # Grid de vehículos
+│       ├── add-vehicle/
+│       ├── edit-vehicle/[alias]/
+│       ├── vehicle-stats/[alias]/    # Estadísticas completas
+│       ├── fuel-analysis/[alias]/    # Análisis de combustible
+│       ├── add-route/
+│       ├── routes-history/
+│       ├── add-refuel/
+│       ├── refuels-history/
+│       ├── add-maintenance/
+│       ├── edit-maintenance/[id]/
+│       ├── maintenance-history/
+│       ├── upcoming-maintenance/     # Próximos servicios
+│       ├── add-expense/
+│       ├── edit-expense/[id]/
+│       ├── expenses-history/
+│       ├── expenses-summary/         # Gráficas por categoría
+│       ├── upcoming-expenses/        # Gastos recurrentes próximos
+│       ├── profile/
+│       └── admin-users/              # Panel admin (solo admin/root)
+│   └── api/                          # Rutas proxy → backend
+├── components/
+│   ├── ui/                           # shadcn/ui + componentes custom
+│   ├── charts/                       # Recharts (Donut, Bar, Line, Area)
+│   ├── navigation/                   # Sidebar, SidebarDrawer, BottomNav
+│   └── layout/                       # PageHeader
+├── contexts/                         # UserContext, VehicleContext, SidebarContext
+├── hooks/                            # useUpcomingCounts, useChartColors, useMediaQuery
+└── Types.ts                          # Interfaces TypeScript compartidas
+middleware.js                         # Protección de rutas (auth redirect)
+```
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## Tests
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+npm test                  # Vitest (unit tests)
+npx playwright test       # Tests e2e
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## Documentación técnica
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Para información detallada sobre arquitectura, patrones de diseño, sistema de componentes, convenciones mobile-first y roadmap, ver **[PRD.md](./PRD.md)**.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## Repo relacionado
+
+**[kilometracker-backend](../kilometracker-backend)** — API REST Express + MongoDB que alimenta esta aplicación.
