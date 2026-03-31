@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import type { Refuel, Vehicle, RefuelFilters } from "@/Types";
+import type { Refuel, Vehicle, RefuelFilters, PaginationMeta } from "@/Types";
 import { formatDateForDisplay, getDateValue } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -19,6 +19,7 @@ import { FilterPanel } from "@/components/ui/FilterPanel";
 import { Plus, Edit, Trash2, Check, AlertCircle } from "lucide-react";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { CardSkeleton } from "@/components/ui/card-skeleton";
+import { Pagination } from "@/components/ui/Pagination";
 
 const TIPOS_COMBUSTIBLE = ["Regular", "Premium", "Diesel", "Eléctrico", "Híbrido", "V-Power"];
 
@@ -35,6 +36,8 @@ export default function RefuelsHistory() {
   const [error, setError] = useState("");
   const [editingRefuel, setEditingRefuel] = useState<Refuel | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -43,7 +46,7 @@ export default function RefuelsHistory() {
 
   useEffect(() => {
     fetchRefuels();
-  }, [filters]);
+  }, [filters, currentPage]);
 
   const fetchVehicles = async () => {
     try {
@@ -66,6 +69,7 @@ export default function RefuelsHistory() {
       if (filters.tipoCombustible) params.append("tipoCombustible", filters.tipoCombustible);
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
+      params.append("page", currentPage.toString());
 
       const response = await fetch(`/api/refuels?${params.toString()}`, { credentials: "include" });
       if (!response.ok) {
@@ -74,6 +78,7 @@ export default function RefuelsHistory() {
       }
       const data = await response.json();
       setRefuels(data.data || []);
+      setPagination(data.pagination ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
@@ -87,6 +92,7 @@ export default function RefuelsHistory() {
   };
 
   const clearFilters = () => {
+    setCurrentPage(1);
     setFilters({ vehicleAlias: "", tipoCombustible: "", startDate: "", endDate: "" });
   };
 
@@ -159,7 +165,7 @@ export default function RefuelsHistory() {
         )}
 
         <FilterPanel
-          onApply={fetchRefuels}
+          onApply={() => { setCurrentPage(1); fetchRefuels(); }}
           onClear={clearFilters}
           activeCount={activeFilterCount}
           gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
@@ -211,7 +217,7 @@ export default function RefuelsHistory() {
         </FilterPanel>
 
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <StatCard label="Recargas" value={refuels.length} size="md" />
+          <StatCard label="Recargas" value={pagination?.total ?? refuels.length} size="md" />
           <StatCard label="Total Gastado" value={`Q ${totalGastado.toFixed(2)}`} size="md" accent="info" />
           <StatCard label="Total Galones" value={totalGalones.toFixed(2)} unit="gal" size="md" />
         </div>
@@ -303,6 +309,15 @@ export default function RefuelsHistory() {
                 </Table>
               </Card>
             </div>
+
+            {pagination && (
+              <div className="mt-4">
+                <Pagination
+                  pagination={pagination}
+                  onPageChange={(p) => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                />
+              </div>
+            )}
           </>
         )}
       </main>

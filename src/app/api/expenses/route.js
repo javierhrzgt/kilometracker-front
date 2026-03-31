@@ -4,25 +4,9 @@ import { bffFetch } from '@/lib/backendFetch';
 // GET /api/expenses - List all expenses (no soft delete, all records are active)
 export async function GET(request) {
   try {
-    // Get query params
     const { searchParams } = new URL(request.url);
-    const vehicleAlias = searchParams.get('vehicleAlias');
-    const categoria = searchParams.get('categoria');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-    const esDeducibleImpuestos = searchParams.get('esDeducibleImpuestos');
-    // Removed isActive - expenses now use permanent delete
-
-    // Build URL with params
-    const params = new URLSearchParams();
-    if (vehicleAlias) params.append('vehicleAlias', vehicleAlias);
-    if (categoria) params.append('categoria', categoria);
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-    if (esDeducibleImpuestos !== null) params.append('esDeducibleImpuestos', esDeducibleImpuestos);
-    // isActive filter removed as expenses use permanent delete
-
-    const path = `/api/expenses${params.toString() ? '?' + params.toString() : ''}`;
+    const queryString = searchParams.toString();
+    const path = `/api/expenses${queryString ? `?${queryString}` : ''}`;
 
     const response = await bffFetch(path);
 

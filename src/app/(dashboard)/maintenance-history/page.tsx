@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import { Maintenance, Vehicle, MaintenanceFilters } from "@/Types";
+import { Maintenance, Vehicle, MaintenanceFilters, PaginationMeta } from "@/Types";
 import { formatDateForDisplay } from "@/lib/dateUtils";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import { Plus, Edit, Trash2, AlertCircle, Wrench } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { CardSkeleton } from "@/components/ui/card-skeleton";
+import { Pagination } from "@/components/ui/Pagination";
 
 const MAINTENANCE_TYPES = [
   "Cambio de aceite", "Rotación de llantas", "Frenos", "Inspección",
@@ -34,10 +35,12 @@ export default function MaintenanceHistory() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const router = useRouter();
 
   useEffect(() => { fetchVehicles(); }, []);
-  useEffect(() => { fetchMaintenances(); }, [filters]);
+  useEffect(() => { fetchMaintenances(); }, [filters, currentPage]);
 
   const fetchVehicles = async () => {
     try {
@@ -61,6 +64,7 @@ export default function MaintenanceHistory() {
       if (filters.tipo) params.append("tipo", filters.tipo);
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
+      params.append("page", currentPage.toString());
       const response = await fetch(`/api/maintenance?${params.toString()}`, { credentials: "include" });
       if (!response.ok) {
         if (response.status === 401) { router.push("/"); return; }
@@ -68,6 +72,7 @@ export default function MaintenanceHistory() {
       }
       const data = await response.json();
       setMaintenances(data.data || []);
+      setPagination(data.pagination ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
@@ -81,6 +86,7 @@ export default function MaintenanceHistory() {
   };
 
   const clearFilters = () => {
+    setCurrentPage(1);
     setFilters({ vehicleAlias: "", tipo: "", startDate: "", endDate: "" });
   };
 
@@ -119,7 +125,7 @@ export default function MaintenanceHistory() {
         )}
 
         <FilterPanel
-          onApply={fetchMaintenances}
+          onApply={() => { setCurrentPage(1); fetchMaintenances(); }}
           onClear={clearFilters}
           activeCount={activeFilterCount}
           gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
@@ -149,7 +155,7 @@ export default function MaintenanceHistory() {
         </FilterPanel>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <StatCard label="Total Mantenimientos" value={maintenances.length} size="md" />
+          <StatCard label="Total Mantenimientos" value={pagination?.total ?? maintenances.length} size="md" />
           <StatCard label="Costo Total" value={`Q ${totalCost.toFixed(2)}`} size="md" accent="warning" />
         </div>
 
@@ -211,8 +217,8 @@ export default function MaintenanceHistory() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Vehículo</TableHead>
-                      <TableHead>Tipo</TableHead>
                       <TableHead>Fecha</TableHead>
+                      <TableHead>Tipo</TableHead>
                       <TableHead>Kilometraje</TableHead>
                       <TableHead>Descripción</TableHead>
                       <TableHead>Proveedor</TableHead>
@@ -225,8 +231,8 @@ export default function MaintenanceHistory() {
                     {maintenances.map((m) => (
                       <TableRow key={m._id}>
                         <TableCell className="font-medium">{m.vehicle?.alias || m.vehicleAlias}</TableCell>
-                        <TableCell><Badge variant="warning">{m.tipo}</Badge></TableCell>
                         <TableCell>{formatDateForDisplay(m.fecha)}</TableCell>
+                        <TableCell><Badge variant="warning">{m.tipo}</Badge></TableCell>
                         <TableCell>{m.kilometraje.toLocaleString()} km</TableCell>
                         <TableCell className="max-w-xs truncate">{m.descripcion}</TableCell>
                         <TableCell>{m.proveedor || "—"}</TableCell>
@@ -257,6 +263,15 @@ export default function MaintenanceHistory() {
                 </Table>
               </Card>
             </div>
+
+            {pagination && (
+              <div className="mt-4">
+                <Pagination
+                  pagination={pagination}
+                  onPageChange={(p) => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                />
+              </div>
+            )}
           </>
         )}
       </main>

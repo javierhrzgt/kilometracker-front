@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Expense, Vehicle, ExpenseFilters } from "@/Types";
+import { Expense, Vehicle, ExpenseFilters, PaginationMeta } from "@/Types";
 import { useRouter } from "next/navigation";
 import { formatDateForDisplay } from "@/lib/dateUtils";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -19,6 +19,7 @@ import { Plus, Edit, Trash2, AlertCircle, Receipt } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { CardSkeleton } from "@/components/ui/card-skeleton";
+import { Pagination } from "@/components/ui/Pagination";
 
 const EXPENSE_CATEGORIES = [
   "Seguro", "Impuestos", "Registro", "Estacionamiento",
@@ -34,12 +35,12 @@ export default function ExpensesHistory() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>("");
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const router = useRouter();
 
-  useEffect(() => {
-    fetchVehicles();
-    fetchExpenses();
-  }, []);
+  useEffect(() => { fetchVehicles(); }, []);
+  useEffect(() => { fetchExpenses(); }, [currentPage]);
 
   const fetchVehicles = async () => {
     try {
@@ -62,6 +63,7 @@ export default function ExpensesHistory() {
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
       if (filters.esDeducibleImpuestos) params.append("esDeducibleImpuestos", filters.esDeducibleImpuestos);
+      params.append("page", currentPage.toString());
 
       const url = `/api/expenses${params.toString() ? "?" + params.toString() : ""}`;
       const response = await fetch(url, { credentials: "include" });
@@ -73,6 +75,7 @@ export default function ExpensesHistory() {
       }
       const data = await response.json();
       setExpenses(data.data || []);
+      setPagination(data.pagination ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
@@ -86,8 +89,8 @@ export default function ExpensesHistory() {
   };
 
   const handleClearFilters = () => {
+    setCurrentPage(1);
     setFilters({ vehicleAlias: "", categoria: "", startDate: "", endDate: "", esDeducibleImpuestos: "" });
-    setTimeout(() => fetchExpenses(), 0);
   };
 
   const handleDelete = async (id: string) => {
@@ -128,7 +131,7 @@ export default function ExpensesHistory() {
         )}
 
         <FilterPanel
-          onApply={fetchExpenses}
+          onApply={() => { setCurrentPage(1); fetchExpenses(); }}
           onClear={handleClearFilters}
           activeCount={activeFilterCount}
           gridClassName="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
@@ -168,7 +171,7 @@ export default function ExpensesHistory() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <StatCard label="Total Gastos" value={`Q ${totalMonto.toFixed(2)}`} size="md" />
           <StatCard label="Deducibles" value={`Q ${taxDeductibleTotal.toFixed(2)}`} size="md" accent="success" />
-          <StatCard label="Cantidad" value={expenses.length} size="md" />
+          <StatCard label="Cantidad" value={pagination?.total ?? expenses.length} size="md" />
         </div>
 
         {loading ? (
@@ -225,8 +228,8 @@ export default function ExpensesHistory() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Fecha</TableHead>
                       <TableHead>Vehículo</TableHead>
+                      <TableHead>Fecha</TableHead>
                       <TableHead>Categoría</TableHead>
                       <TableHead>Descripción</TableHead>
                       <TableHead>Monto</TableHead>
@@ -237,8 +240,8 @@ export default function ExpensesHistory() {
                   <TableBody>
                     {expenses.map((expense) => (
                       <TableRow key={expense._id}>
-                        <TableCell>{formatDateForDisplay(expense.fecha)}</TableCell>
                         <TableCell className="font-medium">{expense.vehicleAlias}</TableCell>
+                        <TableCell>{formatDateForDisplay(expense.fecha)}</TableCell>
                         <TableCell><Badge variant="info">{expense.categoria}</Badge></TableCell>
                         <TableCell className="max-w-xs truncate">{expense.descripcion}</TableCell>
                         <TableCell className="font-medium">Q {expense.monto.toFixed(2)}</TableCell>
@@ -268,6 +271,15 @@ export default function ExpensesHistory() {
                 </Table>
               </Card>
             </div>
+
+            {pagination && (
+              <div className="mt-4">
+                <Pagination
+                  pagination={pagination}
+                  onPageChange={(p) => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                />
+              </div>
+            )}
           </>
         )}
       </main>
