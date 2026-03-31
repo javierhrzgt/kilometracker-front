@@ -39,19 +39,9 @@ export async function POST(request) {
 
 export async function GET(request) {
   try {
-    // Obtener query params
     const { searchParams } = new URL(request.url);
-    const vehicleAlias = searchParams.get('vehicleAlias');
-    const startDate = searchParams.get('startDate');
-    const endDate = searchParams.get('endDate');
-
-    // Construir URL con filtros
-    const params = new URLSearchParams();
-    if (vehicleAlias) params.append('vehicleAlias', vehicleAlias);
-    if (startDate) params.append('startDate', startDate);
-    if (endDate) params.append('endDate', endDate);
-
-    const path = `/api/routes${params.toString() ? '?' + params.toString() : ''}`;
+    const queryString = searchParams.toString();
+    const path = `/api/routes${queryString ? `?${queryString}` : ''}`;
 
     const response = await bffFetch(path);
 

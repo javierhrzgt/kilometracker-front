@@ -2,7 +2,7 @@
 
 import { useState, useEffect, ChangeEvent } from "react";
 import { useRouter } from "next/navigation";
-import type { Route, Vehicle } from "@/Types";
+import type { Route, Vehicle, PaginationMeta } from "@/Types";
 import { formatDateForDisplay, getDateValue } from "@/lib/dateUtils";
 import { cn } from "@/lib/utils";
 import { PageHeader } from "@/components/layout/PageHeader";
@@ -20,12 +20,15 @@ import { Plus, Edit, Trash2, Check, AlertCircle, Map } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { CardSkeleton } from "@/components/ui/card-skeleton";
+import { Pagination } from "@/components/ui/Pagination";
 
 export default function RoutesHistory() {
   const [routes, setRoutes] = useState<Route[]>([]);
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
   const [filters, setFilters] = useState({ vehicleAlias: "", startDate: "", endDate: "" });
   const [showInactive, setShowInactive] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [editingRoute, setEditingRoute] = useState<Route | null>(null);
@@ -34,8 +37,11 @@ export default function RoutesHistory() {
 
   useEffect(() => {
     fetchVehicles();
-    fetchRoutes();
   }, []);
+
+  useEffect(() => {
+    fetchRoutes();
+  }, [currentPage]);
 
   const fetchVehicles = async () => {
     try {
@@ -57,6 +63,7 @@ export default function RoutesHistory() {
       if (filters.vehicleAlias) params.append("vehicleAlias", filters.vehicleAlias);
       if (filters.startDate) params.append("startDate", filters.startDate);
       if (filters.endDate) params.append("endDate", filters.endDate);
+      params.append("page", currentPage.toString());
 
       const response = await fetch(`/api/routes?${params.toString()}`, { credentials: "include" });
       if (!response.ok) {
@@ -65,6 +72,7 @@ export default function RoutesHistory() {
       }
       const data = await response.json();
       setRoutes(data.data || []);
+      setPagination(data.pagination ?? null);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
@@ -78,8 +86,8 @@ export default function RoutesHistory() {
   };
 
   const handleClearFilters = () => {
+    setCurrentPage(1);
     setFilters({ vehicleAlias: "", startDate: "", endDate: "" });
-    setTimeout(() => fetchRoutes(), 0);
   };
 
   const handleEdit = (route: Route) => {
@@ -121,6 +129,7 @@ export default function RoutesHistory() {
   const filteredRoutes = routes.filter(r => showInactive || r.isActive !== false);
   const totalKm = filteredRoutes.reduce((sum, r) => sum + r.distanciaRecorrida, 0);
   const activeFilterCount = [filters.vehicleAlias, filters.startDate, filters.endDate].filter(Boolean).length;
+  const totalRoutes = pagination?.total ?? filteredRoutes.length;
 
   const inactivosToggle = (
     <label className="flex items-center gap-2 cursor-pointer text-sm shrink-0">
@@ -155,7 +164,7 @@ export default function RoutesHistory() {
         )}
 
         <FilterPanel
-          onApply={fetchRoutes}
+          onApply={() => { setCurrentPage(1); fetchRoutes(); }}
           onClear={handleClearFilters}
           activeCount={activeFilterCount}
           gridClassName="grid grid-cols-1 sm:grid-cols-3 gap-4"
@@ -179,7 +188,7 @@ export default function RoutesHistory() {
         </FilterPanel>
 
         <div className="grid grid-cols-2 gap-4 mb-6">
-          <StatCard label="Rutas" value={filteredRoutes.length} size="md" />
+          <StatCard label="Rutas" value={totalRoutes} size="md" />
           <StatCard label="Distancia Total" value={totalKm.toFixed(1)} unit="km" size="md" />
         </div>
 
@@ -274,6 +283,15 @@ export default function RoutesHistory() {
                 </Table>
               </Card>
             </div>
+
+            {pagination && (
+              <div className="mt-4">
+                <Pagination
+                  pagination={pagination}
+                  onPageChange={(p) => { setCurrentPage(p); window.scrollTo({ top: 0, behavior: "smooth" }); }}
+                />
+              </div>
+            )}
           </>
         )}
       </main>
