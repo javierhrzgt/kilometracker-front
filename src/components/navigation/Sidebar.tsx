@@ -230,35 +230,6 @@ export function Sidebar({ className }: SidebarProps) {
 
           <Separator className="my-2" />
 
-          {/* Quick Actions */}
-          {!isCollapsed && (
-            <div className="px-3 py-2">
-              <p className="text-xs font-semibold text-muted-foreground mb-2">
-                ACCIONES RÁPIDAS
-              </p>
-            </div>
-          )}
-          <NavItem
-            href="/add-route"
-            icon={<Plus className="h-4 w-4" />}
-            label="Nueva ruta"
-            isCollapsed={isCollapsed}
-          />
-          <NavItem
-            href="/add-refuel"
-            icon={<Plus className="h-4 w-4" />}
-            label="Nueva recarga"
-            isCollapsed={isCollapsed}
-          />
-          <NavItem
-            href="/add-expense"
-            icon={<Plus className="h-4 w-4" />}
-            label="Nuevo gasto"
-            isCollapsed={isCollapsed}
-          />
-
-          <Separator className="my-2" />
-
           {/* Settings */}
           <NavItem
             href="/profile"

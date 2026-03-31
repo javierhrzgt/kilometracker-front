@@ -15,15 +15,15 @@ export interface ChartColors {
 }
 
 const LIGHT_FALLBACK: ChartColors = {
-  grid: "hsl(214.3 31.8% 91.4%)",
-  tick: "hsl(215.4 16.3% 46.9%)",
+  grid: "hsl(218 18% 88%)",
+  tick: "hsl(218 12% 46%)",
   tooltipBg: "hsl(0 0% 100%)",
-  tooltipBorder: "hsl(214.3 31.8% 91.4%)",
-  chart1: "hsl(239 84% 67%)",
-  chart2: "hsl(160 60% 45%)",
-  chart3: "hsl(30 80% 55%)",
-  chart4: "hsl(280 65% 60%)",
-  chart5: "hsl(10 75% 58%)",
+  tooltipBorder: "hsl(218 18% 88%)",
+  chart1: "hsl(218 60% 50%)",
+  chart2: "hsl(158 52% 42%)",
+  chart3: "hsl(43 72% 49%)",
+  chart4: "hsl(210 35% 55%)",
+  chart5: "hsl(358 55% 50%)",
 };
 
 function readCSSColors(): ChartColors {

@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { FilterPanel } from "@/components/ui/FilterPanel";
-import { Plus, Edit, Trash2, AlertCircle, Receipt } from "lucide-react";
+import { Edit, Trash2, AlertCircle, Receipt } from "lucide-react";
 import { EmptyState } from "@/components/ui/empty-state";
 import { StatCard } from "@/components/features/stats/StatCard";
 import { CardSkeleton } from "@/components/ui/card-skeleton";
@@ -114,12 +114,6 @@ export default function ExpensesHistory() {
     <>
       <PageHeader
         title="Historial de Gastos"
-        actions={
-          <Button onClick={() => router.push("/add-expense")}>
-            <Plus className="h-4 w-4 mr-2" />
-            Agregar Gasto
-          </Button>
-        }
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">

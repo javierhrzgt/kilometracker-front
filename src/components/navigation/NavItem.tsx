@@ -39,7 +39,7 @@ export function NavItem({
       className={cn(
         "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all hover:bg-accent",
         isActive
-          ? "bg-primary/10 text-primary border-l-2 border-primary"
+          ? "bg-primary/15 text-primary border-l-[3px] border-primary font-semibold"
           : "text-muted-foreground hover:text-foreground",
         isCollapsed && "justify-center px-2"
       )}

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 interface UpcomingCounts {
   maintenanceCount: number;
   expensesCount: number;
+  maintenanceByVehicle: Record<string, number>;
   isLoading: boolean;
   error: string | null;
 }
@@ -10,6 +11,7 @@ interface UpcomingCounts {
 export function useUpcomingCounts(): UpcomingCounts {
   const [maintenanceCount, setMaintenanceCount] = useState(0);
   const [expensesCount, setExpensesCount] = useState(0);
+  const [maintenanceByVehicle, setMaintenanceByVehicle] = useState<Record<string, number>>({});
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -27,11 +29,18 @@ export function useUpcomingCounts(): UpcomingCounts {
       // Handle maintenance response
       if (maintenanceRes.ok) {
         const maintenanceData = await maintenanceRes.json();
-        const maintenanceItems = maintenanceData.data || [];
+        const maintenanceItems: Array<{ vehicleAlias?: string }> = maintenanceData.data || [];
         setMaintenanceCount(maintenanceItems.length);
+        const byVehicle: Record<string, number> = {};
+        for (const item of maintenanceItems) {
+          const alias = item.vehicleAlias ?? "";
+          if (alias) byVehicle[alias] = (byVehicle[alias] ?? 0) + 1;
+        }
+        setMaintenanceByVehicle(byVehicle);
       } else {
         console.warn("Failed to fetch upcoming maintenance");
         setMaintenanceCount(0);
+        setMaintenanceByVehicle({});
       }
 
       // Handle expenses response
@@ -48,6 +57,7 @@ export function useUpcomingCounts(): UpcomingCounts {
       setError(err instanceof Error ? err.message : "Failed to fetch counts");
       setMaintenanceCount(0);
       setExpensesCount(0);
+      setMaintenanceByVehicle({});
     } finally {
       setIsLoading(false);
     }
@@ -66,6 +76,7 @@ export function useUpcomingCounts(): UpcomingCounts {
   return {
     maintenanceCount,
     expensesCount,
+    maintenanceByVehicle,
     isLoading,
     error,
   };

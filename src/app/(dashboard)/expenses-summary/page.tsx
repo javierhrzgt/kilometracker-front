@@ -6,14 +6,16 @@ import { useRouter } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableHeader, TableBody, TableHead, TableRow, TableCell } from "@/components/ui/table";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { SelectNative } from "@/components/ui/select-native";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { DollarSign, TrendingUp, Filter, AlertCircle } from "lucide-react";
+import { TrendingUp, AlertCircle } from "lucide-react";
 import { ExpenseDonutChart } from "@/components/charts/ExpenseDonutChart";
+import { StatCard } from "@/components/features/stats/StatCard";
+import { FilterPanel } from "@/components/ui/FilterPanel";
+import { CardSkeleton } from "@/components/ui/card-skeleton";
 
 export default function ExpensesSummary() {
   const [summary, setSummary] = useState<ExpenseSummary[]>([]);
@@ -32,10 +34,7 @@ export default function ExpensesSummary() {
 
   const fetchVehicles = async () => {
     try {
-      const response = await fetch("/api/vehicles", {
-        credentials: "include",
-      });
-
+      const response = await fetch("/api/vehicles", { credentials: "include" });
       if (response.ok) {
         const data = await response.json();
         setVehicles(data.data || []);
@@ -54,9 +53,7 @@ export default function ExpensesSummary() {
 
       const url = `/api/expenses/summary${params.toString() ? "?" + params.toString() : ""}`;
 
-      const response = await fetch(url, {
-        credentials: "include",
-      });
+      const response = await fetch(url, { credentials: "include" });
 
       if (!response.ok) {
         if (response.status === 401) {
@@ -105,12 +102,16 @@ export default function ExpensesSummary() {
 
   const totalMonto = summary.reduce((sum, item) => sum + item.totalMonto, 0);
   const totalCantidad = summary.reduce((sum, item) => sum + item.cantidad, 0);
+  const activeFilterCount = [selectedVehicle, startDate, endDate].filter(Boolean).length;
 
   if (loading) {
     return (
-      <div className="flex justify-center items-center">
-        <div className="text-muted-foreground">Cargando...</div>
-      </div>
+      <>
+        <PageHeader title="Resumen de Gastos" />
+        <main className="page-container">
+          <CardSkeleton rows={4} />
+        </main>
+      </>
     );
   }
 
@@ -118,8 +119,7 @@ export default function ExpensesSummary() {
     <>
       <PageHeader title="Resumen de Gastos" />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Error Message */}
+      <main className="page-container">
         {error && (
           <Alert variant="destructive" className="mb-6">
             <AlertCircle className="h-4 w-4" />
@@ -127,97 +127,67 @@ export default function ExpensesSummary() {
           </Alert>
         )}
 
-        {/* Filters */}
-        <Card className="mb-6 shadow-sm hover:shadow-depth-2 transition-elevation">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filtros
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="vehicle">Vehículo</Label>
-                <SelectNative
-                  id="vehicle"
-                  value={selectedVehicle}
-                  onChange={(e) => setSelectedVehicle(e.target.value)}
-                >
-                  <option value="">Todos</option>
-                  {vehicles.map((vehicle) => (
-                    <option key={vehicle._id} value={vehicle.alias}>
-                      {vehicle.alias}
-                    </option>
-                  ))}
-                </SelectNative>
-              </div>
+        <FilterPanel
+          onApply={handleApplyFilters}
+          onClear={handleClearFilters}
+          activeCount={activeFilterCount}
+          gridClassName="grid grid-cols-1 sm:grid-cols-3 gap-4"
+        >
+          <div className="space-y-2">
+            <Label htmlFor="vehicle">Vehículo</Label>
+            <SelectNative
+              id="vehicle"
+              value={selectedVehicle}
+              onChange={(e) => setSelectedVehicle(e.target.value)}
+            >
+              <option value="">Todos</option>
+              {vehicles.map((vehicle) => (
+                <option key={vehicle._id} value={vehicle.alias}>
+                  {vehicle.alias}
+                </option>
+              ))}
+            </SelectNative>
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="startDate">Fecha inicio</Label>
-                <Input
-                  id="startDate"
-                  type="date"
-                  value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
-                />
-              </div>
+          <div className="space-y-2">
+            <Label htmlFor="startDate">Fecha inicio</Label>
+            <Input
+              id="startDate"
+              type="date"
+              value={startDate}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
+          </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="endDate">Fecha fin</Label>
-                <Input
-                  id="endDate"
-                  type="date"
-                  value={endDate}
-                  onChange={(e) => setEndDate(e.target.value)}
-                />
-              </div>
-            </div>
+          <div className="space-y-2">
+            <Label htmlFor="endDate">Fecha fin</Label>
+            <Input
+              id="endDate"
+              type="date"
+              value={endDate}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
+          </div>
+        </FilterPanel>
 
-            <div className="mt-4 flex gap-2">
-              <Button onClick={handleApplyFilters} className="shadow-sm hover:shadow-depth-2 transition-smooth">
-                Aplicar Filtros
-              </Button>
-              <Button variant="outline" onClick={handleClearFilters} className="transition-smooth">
-                Limpiar
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          <Card className="shadow-sm hover:shadow-depth-3 transition-elevation">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total Gastado</p>
-                  <p className="text-3xl font-semibold">
-                    Q {totalMonto.toFixed(2)}
-                  </p>
-                </div>
-                <DollarSign className="h-8 w-8 text-muted-foreground" />
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-sm hover:shadow-depth-3 transition-elevation">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-muted-foreground mb-1">Total de Gastos</p>
-                  <p className="text-3xl font-semibold">{totalCantidad}</p>
-                </div>
-                <Badge variant="secondary" className="text-lg px-3 py-1">
-                  {totalCantidad}
-                </Badge>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Summary StatCards */}
+        <div className="grid grid-cols-2 gap-4 mb-6">
+          <StatCard
+            label="Total Gastado"
+            value={`Q ${totalMonto.toFixed(2)}`}
+            size="md"
+            accent="purple"
+          />
+          <StatCard
+            label="Total de Gastos"
+            value={totalCantidad}
+            size="md"
+          />
         </div>
 
         {/* Donut Chart */}
         {summary.length > 0 && (
-          <Card className="mb-6 shadow-sm">
+          <Card className="mb-6">
             <CardHeader>
               <CardTitle className="text-base font-semibold">Distribución por categoría</CardTitle>
             </CardHeader>
@@ -229,7 +199,7 @@ export default function ExpensesSummary() {
           </Card>
         )}
 
-        {/* Category Breakdown */}
+        {/* Category Cards — vista principal en móvil */}
         {summary.length === 0 ? (
           <Card>
             <CardContent className="text-center py-16">
@@ -241,7 +211,7 @@ export default function ExpensesSummary() {
             {summary.map((item, index) => {
               const percentage = totalMonto > 0 ? (item.totalMonto / totalMonto) * 100 : 0;
               return (
-                <Card key={item._id} className="shadow-sm hover:shadow-depth-3 transition-elevation">
+                <Card key={item._id} className="hover:shadow-depth-3 transition-elevation">
                   <CardHeader className="pb-3">
                     <CardTitle className="text-base flex items-center justify-between">
                       <span>{item._id}</span>
@@ -250,9 +220,7 @@ export default function ExpensesSummary() {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-2">
-                      <p className="text-2xl font-bold">
-                        Q {item.totalMonto.toFixed(2)}
-                      </p>
+                      <p className="text-2xl font-bold">Q {item.totalMonto.toFixed(2)}</p>
                       <div className="space-y-1">
                         <div className="flex justify-between text-sm">
                           <span className="text-muted-foreground">Porcentaje</span>
@@ -262,7 +230,7 @@ export default function ExpensesSummary() {
                           <div
                             className={`${getCategoryColor(index)} h-2 rounded-full transition-all duration-500`}
                             style={{ width: `${percentage}%` }}
-                          ></div>
+                          />
                         </div>
                       </div>
                       <p className="text-xs text-muted-foreground">
@@ -276,58 +244,56 @@ export default function ExpensesSummary() {
           </div>
         )}
 
-        {/* Detailed Table */}
+        {/* Detailed Table — oculta en móvil (las cards ya contienen esta info) */}
         {summary.length > 0 && (
-          <Card className="shadow-sm">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5" />
-                Detalle por Categoría
-              </CardTitle>
-              <CardDescription>
-                Información completa de gastos agrupados por categoría
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Categoría</TableHead>
-                      <TableHead>Cantidad</TableHead>
-                      <TableHead>Monto Total</TableHead>
-                      <TableHead>Promedio</TableHead>
-                      <TableHead>Porcentaje</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {summary.map((item) => {
-                      const percentage = totalMonto > 0 ? (item.totalMonto / totalMonto) * 100 : 0;
-                      return (
-                        <TableRow key={item._id}>
-                          <TableCell className="font-medium">{item._id}</TableCell>
-                          <TableCell>
-                            <Badge variant="secondary">{item.cantidad}</Badge>
-                          </TableCell>
-                          <TableCell className="font-semibold">
-                            Q {item.totalMonto.toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            Q {(item.totalMonto / item.cantidad).toFixed(2)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center gap-2">
-                              <span>{percentage.toFixed(2)}%</span>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
-            </CardContent>
-          </Card>
+          <div className="hidden md:block">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5" />
+                  Detalle por Categoría
+                </CardTitle>
+                <CardDescription>
+                  Información completa de gastos agrupados por categoría
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Categoría</TableHead>
+                        <TableHead>Cantidad</TableHead>
+                        <TableHead>Monto Total</TableHead>
+                        <TableHead>Promedio</TableHead>
+                        <TableHead>Porcentaje</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {summary.map((item) => {
+                        const percentage = totalMonto > 0 ? (item.totalMonto / totalMonto) * 100 : 0;
+                        return (
+                          <TableRow key={item._id}>
+                            <TableCell className="font-medium">{item._id}</TableCell>
+                            <TableCell>
+                              <Badge variant="secondary">{item.cantidad}</Badge>
+                            </TableCell>
+                            <TableCell className="font-semibold">
+                              Q {item.totalMonto.toFixed(2)}
+                            </TableCell>
+                            <TableCell>
+                              Q {(item.totalMonto / item.cantidad).toFixed(2)}
+                            </TableCell>
+                            <TableCell>{percentage.toFixed(2)}%</TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </main>
     </>
