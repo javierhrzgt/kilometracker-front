@@ -45,11 +45,12 @@ function readCSSColors(): ChartColors {
 }
 
 export function useChartColors(): ChartColors {
-  const [colors, setColors] = useState<ChartColors>(LIGHT_FALLBACK);
+  const [colors, setColors] = useState<ChartColors>(() => {
+    if (typeof document === "undefined") return LIGHT_FALLBACK;
+    return readCSSColors();
+  });
 
   useEffect(() => {
-    setColors(readCSSColors());
-
     const observer = new MutationObserver(() => {
       setColors(readCSSColors());
     });

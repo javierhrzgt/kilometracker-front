@@ -340,7 +340,7 @@ export default function RefuelsHistory() {
                 <Input
                   type="number"
                   value={editingRefuel.cantidadGastada}
-                  onChange={(e) => setEditingRefuel({ ...editingRefuel, cantidadGastada: e.target.value as any })}
+                  onChange={(e) => setEditingRefuel({ ...editingRefuel, cantidadGastada: Number(e.target.value) })}
                 />
               </div>
               <div className="space-y-2">
@@ -348,7 +348,7 @@ export default function RefuelsHistory() {
                 <Input
                   type="number"
                   value={editingRefuel.galones || ""}
-                  onChange={(e) => setEditingRefuel({ ...editingRefuel, galones: e.target.value as any })}
+                  onChange={(e) => setEditingRefuel({ ...editingRefuel, galones: e.target.value ? Number(e.target.value) : undefined })}
                 />
               </div>
               <div className="space-y-2">

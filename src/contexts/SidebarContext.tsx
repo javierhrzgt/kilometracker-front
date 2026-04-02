@@ -13,25 +13,18 @@ const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 const STORAGE_KEY = "sidebar-collapsed";
 
+function getInitialSidebarState(): boolean {
+  if (typeof window === "undefined") return false;
+  const stored = localStorage.getItem(STORAGE_KEY);
+  return stored === "true";
+}
+
 export function SidebarProvider({ children }: { children: ReactNode }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(getInitialSidebarState);
 
-  // Load initial state from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored !== null) {
-      setIsCollapsed(stored === "true");
-    }
-    setMounted(true);
-  }, []);
-
-  // Persist to localStorage whenever state changes
-  useEffect(() => {
-    if (mounted) {
-      localStorage.setItem(STORAGE_KEY, isCollapsed.toString());
-    }
-  }, [isCollapsed, mounted]);
+    localStorage.setItem(STORAGE_KEY, isCollapsed.toString());
+  }, [isCollapsed]);
 
   // Sync across tabs using storage event
   useEffect(() => {
