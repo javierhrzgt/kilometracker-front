@@ -60,7 +60,10 @@ export function FuelEfficiencyLineChart({ data }: FuelEfficiencyLineChartProps) 
             borderRadius: "8px",
             fontSize: 12,
           }}
-          formatter={(value: number) => [`${value.toFixed(2)} km/L`, "Eficiencia"]}
+          formatter={(value) => {
+              const num = typeof value === "number" ? value : 0;
+              return [`${num.toFixed(2)} km/L`, "Eficiencia"];
+            }}
         />
         <ReferenceLine
           y={parseFloat(avg.toFixed(2))}

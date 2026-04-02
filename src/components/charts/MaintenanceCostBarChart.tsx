@@ -61,7 +61,10 @@ export function MaintenanceCostBarChart({ data }: MaintenanceCostBarChartProps) 
             borderRadius: "8px",
             fontSize: 12,
           }}
-          formatter={(value: number) => [`Q${value.toFixed(2)}`, "Costo"]}
+          formatter={(value) => {
+              const num = typeof value === "number" ? value : 0;
+              return [`Q${num.toFixed(2)}`, "Costo"];
+            }}
           cursor={{ fill: `${c.grid}66` }}
         />
         <Bar

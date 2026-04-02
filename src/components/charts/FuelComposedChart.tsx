@@ -69,11 +69,12 @@ export function FuelComposedChart({ data }: FuelComposedChartProps) {
             borderRadius: "8px",
             fontSize: 12,
           }}
-          formatter={(value: number, name: string) =>
-            name === "costo"
-              ? [`Q${value.toFixed(2)}`, "Costo combustible"]
-              : [`${value.toFixed(2)} km/L`, "Eficiencia"]
-          }
+          formatter={(value, name) => {
+              const num = typeof value === "number" ? value : 0;
+              return name === "costo"
+                ? [`Q${num.toFixed(2)}`, "Costo combustible"]
+                : [`${num.toFixed(2)} km/L`, "Eficiencia"];
+            }}
         />
         <Legend
           formatter={(value) =>
