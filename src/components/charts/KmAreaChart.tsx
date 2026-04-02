@@ -88,7 +88,10 @@ export function KmAreaChart({ data, compact = false }: KmAreaChartProps) {
             borderRadius: "8px",
             fontSize: 12,
           }}
-          formatter={(value: number) => [`${value.toFixed(1)} km`, "Distancia"]}
+          formatter={(value) => {
+              const num = typeof value === "number" ? value : 0;
+              return [`${num.toFixed(1)} km`, "Distancia"];
+            }}
           labelFormatter={(label) => label}
         />
         <Area

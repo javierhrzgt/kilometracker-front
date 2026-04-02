@@ -70,7 +70,10 @@ export function ExpenseDonutChart({ data }: ExpenseDonutChartProps) {
             borderRadius: "8px",
             fontSize: 12,
           }}
-          formatter={(value: number) => [`Q${value.toFixed(2)}`, ""]}
+          formatter={(value) => {
+              const num = typeof value === "number" ? value : 0;
+              return [`Q${num.toFixed(2)}`, ""];
+            }}
         />
         <Legend
           formatter={(value) => value}
