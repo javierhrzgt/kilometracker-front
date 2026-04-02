@@ -141,7 +141,7 @@ export default function EditExpense() {
 
     try {
       // Prepare payload
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         vehicleAlias: formData.vehicleAlias,
         categoria: formData.categoria,
         monto: parseFloat(formData.monto),

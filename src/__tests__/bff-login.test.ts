@@ -3,9 +3,13 @@
  * Verifica que el error del backend se propaga correctamente al cliente.
  */
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { NextResponse } from "next/server";
 
-// Mock global fetch
+interface MockRequest {
+  json: () => Promise<{ email?: string; password?: string }>;
+}
+
+type TestRequest = Partial<MockRequest> & { json: () => Promise<{ email?: string; password?: string }> };
+
 const mockFetch = vi.fn();
 global.fetch = mockFetch;
 
@@ -24,9 +28,9 @@ describe("POST /api/auth/login", () => {
   });
 
   it("returns 400 when email or password is missing", async () => {
-    const request = {
+    const request: TestRequest = {
       json: async () => ({ email: "", password: "" }),
-    } as any;
+    };
 
     const res = await POST(request);
     expect(res.status).toBe(400);
@@ -42,9 +46,9 @@ describe("POST /api/auth/login", () => {
       json: async () => ({ error: "Credenciales inválidas" }),
     });
 
-    const request = {
+    const request: TestRequest = {
       json: async () => ({ email: "a@b.com", password: "wrong" }),
-    } as any;
+    };
 
     const res = await POST(request);
     expect(res.status).toBe(401);
@@ -60,9 +64,9 @@ describe("POST /api/auth/login", () => {
       text: async () => "<html>Service Unavailable</html>",
     });
 
-    const request = {
+    const request: TestRequest = {
       json: async () => ({ email: "a@b.com", password: "test-only-not-a-secret" }),
-    } as any;
+    };
 
     const res = await POST(request);
     expect(res.status).toBe(502);
@@ -76,9 +80,9 @@ describe("POST /api/auth/login", () => {
       json: async () => ({ success: true, data: { user: { email: "a@b.com" } } }),
     });
 
-    const request = {
+    const request: TestRequest = {
       json: async () => ({ email: "a@b.com", password: "test-only-not-a-secret" }),
-    } as any;
+    };
 
     const res = await POST(request);
     expect(res.status).toBe(502);
@@ -100,15 +104,14 @@ describe("POST /api/auth/login", () => {
       }),
     });
 
-    const request = {
+    const request: TestRequest = {
       json: async () => ({ email: "a@b.com", password: "test-only-not-a-secret" }),
-    } as any;
+    };
 
     const res = await POST(request);
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.success).toBe(true);
-    // Cookie should be set (NextResponse cookies API)
     const setCookie = res.headers.get("set-cookie");
     expect(setCookie).toContain("token=");
     expect(setCookie).toContain("HttpOnly");

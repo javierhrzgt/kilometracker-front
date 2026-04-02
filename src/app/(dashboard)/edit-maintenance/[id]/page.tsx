@@ -125,7 +125,7 @@ export default function EditMaintenance() {
 
     try {
       // Prepare payload
-      const payload: any = {
+      const payload: Record<string, unknown> = {
         vehicleAlias: formData.vehicleAlias,
         tipo: formData.tipo,
         descripcion: formData.descripcion,

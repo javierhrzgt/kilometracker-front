@@ -4,7 +4,12 @@
  */
 import { describe, it, expect, vi, beforeAll, beforeEach } from "vitest";
 
-// Mock bffFetch so we control what the "backend" returns
+interface MockRequest {
+  headers?: Headers;
+}
+
+type TestRequest = Partial<MockRequest> & { headers?: Headers };
+
 const mockBffFetch = vi.fn();
 vi.mock("@/lib/backendFetch", () => ({
   bffFetch: mockBffFetch,
@@ -42,7 +47,7 @@ describe("GET /api/vehicles/[alias]/stats", () => {
       json: async () => mockStats,
     });
 
-    const res = await GET({} as any, makeParams("MYCAR"));
+    const res = await GET({} as TestRequest, makeParams("MYCAR"));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.data.vehicle.alias).toBe("MYCAR");
@@ -55,7 +60,7 @@ describe("GET /api/vehicles/[alias]/stats", () => {
       json: async () => ({ error: "Vehículo no encontrado" }),
     });
 
-    const res = await GET({} as any, makeParams("NOTEXISTS"));
+    const res = await GET({} as TestRequest, makeParams("NOTEXISTS"));
     expect(res.status).toBe(404);
     const body = await res.json();
     expect(body.error).toBe("Vehículo no encontrado");
@@ -68,14 +73,14 @@ describe("GET /api/vehicles/[alias]/stats", () => {
       json: async () => ({ error: "No autorizado" }),
     });
 
-    const res = await GET({} as any, makeParams("OTHERCAR"));
+    const res = await GET({} as TestRequest, makeParams("OTHERCAR"));
     expect(res.status).toBe(403);
   });
 
   it("returns 500 when bffFetch throws", async () => {
     mockBffFetch.mockRejectedValueOnce(new Error("Network error"));
 
-    const res = await GET({} as any, makeParams("MYCAR"));
+    const res = await GET({} as TestRequest, makeParams("MYCAR"));
     expect(res.status).toBe(500);
     const body = await res.json();
     expect(body.error).toContain("Error interno");
@@ -88,7 +93,7 @@ describe("GET /api/vehicles/[alias]/stats", () => {
       json: async () => ({ error: "No autorizado" }),
     });
 
-    const res = await GET({} as any, makeParams("MYCAR"));
+    const res = await GET({} as TestRequest, makeParams("MYCAR"));
     expect(res.status).toBe(401);
   });
 });

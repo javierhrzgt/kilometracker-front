@@ -301,7 +301,7 @@ export default function RoutesHistory() {
               <div className="space-y-2">
                 <Label>Distancia (km)</Label>
                 <Input type="number" value={editingRoute.distanciaRecorrida}
-                  onChange={(e) => setEditingRoute({ ...editingRoute, distanciaRecorrida: e.target.value as any })} />
+                  onChange={(e) => setEditingRoute({ ...editingRoute, distanciaRecorrida: Number(e.target.value) })} />
               </div>
               <div className="space-y-2">
                 <Label>Fecha</Label>
