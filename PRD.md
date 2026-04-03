@@ -73,12 +73,15 @@ Igual que el backend: los vehículos se identifican por `alias` (string único) 
 | `UserContext` | `useUser()` | `user`, `isLoading`, `isAdmin`, `isAuthenticated`, `refreshUser()` |
 | `VehicleContext` | `useVehicle()` | `vehicles`, `selectedVehicle`, `setSelectedVehicle`, `isLoading`, `refreshVehicles()` |
 | `SidebarContext` | `useSidebar()` | Estado de colapso del sidebar (persiste en localStorage, sincroniza entre tabs) |
+| `ThemeContext` | `useTheme()` | `theme`, `toggleTheme` (dark mode con persistencia en localStorage) |
 
 Los providers se montan en el layout del dashboard (`src/app/(dashboard)/layout.tsx`).
 
-### 4.5 Todos los componentes de página usan `"use client"`
+### 4.5 Componentes de página
 
-No se usa Server Components para fetching. Los datos se obtienen con `fetch()` del cliente hacia las rutas `/api/*` del propio Next.js.
+La mayoría de páginas son **Client Components** (`"use client"`) para interactividad. Los únicos Server Components son:
+- `src/app/layout.tsx` (root layout)
+- `src/app/(dashboard)/layout.tsx` (dashboard layout con providers)
 
 ---
 
@@ -160,13 +163,17 @@ La app se usa principalmente en dispositivos móviles. Todas las decisiones de U
 ### 6.1 Layouts
 
 - Diseñar para mobile primero, escalar a desktop con breakpoints (`md:`, `lg:`).
-- Touch targets mínimo 44x44px.
-- Botones de acción en listas: `h-8 w-8` (icono solamente en mobile).
+- Touch targets mínimo **44x44px** (`h-11 w-11`).
+- Botones de acción en listas de historial: `h-11 w-11` (44px para touch).
 
 ### 6.2 Navegación
 
 - Sidebar colapsable en desktop.
-- En mobile: considerar bottom navigation bar como alternativa futura al sidebar.
+- **Bottom navigation bar** implementado en mobile (`src/components/navigation/BottomNav.tsx`):
+  - Dashboard, Rutas como links directos
+  - FAB (Floating Action Button) para acciones de registro rápido
+  - Alertas y Menú como accesos rápidos
+- **Sidebar drawer** desde menu hamburger en mobile.
 
 ### 6.3 Filtros
 
@@ -300,7 +307,7 @@ const c = useChartColors();
 | Recuperar / resetear contraseña | Implementado (UI) | El backend aún no tiene el endpoint — P0 |
 | Dashboard de vehículos | Implementado | Skeleton loading, EmptyState |
 | CRUD vehículos | Implementado | |
-| Historial de rutas | Implementado | Card mobile / tabla desktop |
+| Historial de rutas | Implementado | Card mobile (h-11 touch targets) / tabla desktop |
 | Historial de recargas | Implementado | |
 | Historial de mantenimientos | Implementado | |
 | Historial de gastos | Implementado | |
@@ -311,10 +318,12 @@ const c = useChartColors();
 | Próximos gastos recurrentes | Implementado | |
 | Perfil de usuario | Implementado | |
 | Admin — gestión de usuarios | Implementado | Solo visible con rol admin |
-| Charts (Recharts) | Implementado | ExpenseDonut, FuelBar, FuelComposed, FuelEfficiencyLine, KmArea |
-| Formularios con RHF + Zod | Parcial | Instalados pero migración pendiente en algunos formularios |
+| Charts (Recharts) | Implementado | 6 charts con useChartColors() para dark mode |
+| Formularios con RHF + Zod | Parcial | Algunos formularios aún usan useState |
 | Tests (Vitest) | Pendiente | Setup presente, tests por escribir |
-| Tests e2e (Playwright) | Pendiente | Setup presente, tests por escribir |
+| Tests e2e (Playwright) | Setup presente | 1 test existente: `e2e/vehicle-tracking.spec.ts` |
+| Bottom Navigation (mobile) | Implementado | FAB para acciones rápidas |
+| Dark Mode | Implementado | ThemeContext + useChartColors |
 
 ---
 
@@ -343,14 +352,14 @@ const c = useChartColors();
 
 ### P3 — Tests e2e con Playwright
 
-- [ ] Happy path de autenticación (login, logout, registro)
-- [ ] Crear vehículo + agregar ruta + verificar `kilometrajeTotal`
-- [ ] Flujo de mantenimiento: crear → ver en upcoming → marcar como completado
+- [x] ~~Happy path de autenticación (login, logout, registro)~~ - Test existente en `e2e/vehicle-tracking.spec.ts`
+- [x] ~~Crear vehículo + agregar ruta + verificar kilometrajeTotal~~ - Test existente
+- [ ] Expandir coverage de tests e2e
 
-### P4 — Mejoras de UX mobile
+### P4 — Mejoras de UX (ya implementadas ✅)
 
-- [ ] Evaluar bottom navigation bar para mobile (las 4-5 acciones más frecuentes)
-- [ ] FAB (Speed Dial) para acciones de creación rápida
+- [x] ~~Bottom navigation bar para mobile~~ - Implementado en `src/components/navigation/BottomNav.tsx`
+- [x] ~~FAB (Speed Dial) para acciones de creación rápida~~ - Implementado en BottomNav
 - [ ] Revisar formularios largos — considerar step-by-step en mobile
 
 ---
@@ -395,3 +404,17 @@ import { FilterPanel } from "../../components/ui/FilterPanel";
 - App desplegada en Vercel: `https://kilometracker.vercel.app`
 - `API_BASE_URL` apunta al backend desplegado en Railway/Render.
 - El middleware de Next.js maneja la protección de rutas sin llamadas extra al servidor.
+
+### 14.1 Métricas de Calidad (Lighthouse)
+
+| Métrica | Score |
+|---------|-------|
+| Accessibility | 100 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+### 14.2 Fixes implementados
+
+- **ThemeToggle hydration mismatch**: Usar `Script` de `next/script` con `strategy="beforeInteractive"` en lugar de inline script en `<head>`.
+- **Colores semánticos dark mode**: Agregados `--color-success`, `--color-info`, `--color-purple` para dark mode en `globals.css`.
+- **Touch targets**: Botones de acción en listas de historial usan `h-11 w-11` (44px).
