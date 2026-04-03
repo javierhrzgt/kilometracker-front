@@ -72,7 +72,7 @@ export function SidebarDrawer({ isOpen, onClose }: SidebarDrawerProps) {
 
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="left" className="w-[min(85vw,20rem)] p-0">
+      <SheetContent side="left" className="w-[min(85vw,20rem)] p-0 bg-background">
         <SheetHeader className="p-4 border-b border-border">
           <SheetTitle className="flex items-center gap-2">
             <Car className="h-6 w-6 text-primary" />

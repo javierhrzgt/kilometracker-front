@@ -36,7 +36,7 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
 
   return (
     <>
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-background border-t border-border shadow-lg backdrop-blur-sm pb-[env(safe-area-inset-bottom)]">
+        <div className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-card border-t border-border shadow-lg backdrop-blur-sm pb-[env(safe-area-inset-bottom)]">
         <nav className="flex items-center h-16 px-2">
           {/* Left nav items */}
           {navItems.map((item) => {
@@ -106,7 +106,7 @@ export function BottomNav({ onMenuClick }: BottomNavProps) {
 
       {/* Action Sheet */}
       <Sheet open={fabOpen} onOpenChange={setFabOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-8">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-8 bg-card">
           <SheetHeader className="mb-4">
             <SheetTitle>Registrar</SheetTitle>
           </SheetHeader>

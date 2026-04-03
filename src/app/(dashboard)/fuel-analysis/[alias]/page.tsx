@@ -141,9 +141,9 @@ export default function FuelAnalysisPage() {
                       key={tipo}
                       className="border border-border rounded-lg p-4 bg-card hover:shadow-depth-2 transition-elevation"
                     >
-                      <h4 className="font-medium text-base mb-3 text-foreground">
+                      <h3 className="font-medium text-base mb-3 text-foreground">
                         {tipo}
-                      </h4>
+                      </h3>
                       <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Recargas:</span>
