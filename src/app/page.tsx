@@ -44,7 +44,7 @@ export default function Home() {
   };
 
   return (
-    <div className="flex flex-col justify-center items-center min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 px-4">
+    <div className="flex flex-col justify-center items-center min-h-screen bg-background px-4">
       <div className="w-full max-w-md">
         {/* Logo/Brand */}
         <div className="flex items-center justify-center gap-3 mb-8">

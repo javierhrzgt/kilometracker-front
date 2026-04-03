@@ -161,6 +161,9 @@
   --color-surface-sunken: hsl(240 10% 6%);
   /* Warning + chart overrides for dark mode */
   --color-warning:   hsl(43 80% 58%);
+  --color-success:   hsl(158 65% 45%);
+  --color-info:       hsl(210 45% 65%);
+  --color-purple:     hsl(210 50% 55%);
   --color-chart-1:   hsl(214 75% 68%);
   --color-chart-2:   hsl(158 58% 52%);
   --color-chart-3:   hsl(43 78% 62%);

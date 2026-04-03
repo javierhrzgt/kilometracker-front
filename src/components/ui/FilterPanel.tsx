@@ -80,7 +80,7 @@ export function FilterPanel({
 
       {/* Mobile: filter Sheet */}
       <Sheet open={open} onOpenChange={setOpen}>
-        <SheetContent side="bottom" className="rounded-t-2xl pb-8">
+        <SheetContent side="bottom" className="rounded-t-2xl pb-8 bg-card">
           <SheetHeader className="mb-4">
             <SheetTitle>Filtros</SheetTitle>
           </SheetHeader>

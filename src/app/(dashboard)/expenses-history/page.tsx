@@ -192,12 +192,12 @@ export default function ExpensesHistory() {
                       </div>
                       <p className="text-xs text-muted-foreground mt-0.5">{formatDateForDisplay(expense.fecha)}</p>
                     </div>
-                    <div className="flex gap-1 shrink-0">
-                      <Button variant="ghost" size="icon" className="h-8 w-8"
+                    <div className="flex gap-2 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-11 w-11"
                         onClick={() => router.push(`/edit-expense/${expense._id}`)}>
                         <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8"
+                      <Button variant="ghost" size="icon" className="h-11 w-11"
                         onClick={() => setDeleteConfirm(expense._id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />
                       </Button>
