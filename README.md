@@ -153,6 +153,16 @@ npx playwright test       # Tests e2e
 
 ---
 
+## Métricas de Calidad (Lighthouse)
+
+| Métrica | Score |
+|---------|-------|
+| Accessibility | 100 |
+| Best Practices | 100 |
+| SEO | 100 |
+
+---
+
 ## Documentación técnica
 
 Para información detallada sobre arquitectura, patrones de diseño, sistema de componentes, convenciones mobile-first y roadmap, ver **[PRD.md](./PRD.md)**.
