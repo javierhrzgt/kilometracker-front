@@ -59,7 +59,7 @@
     "eslint": "^9",
     "eslint-config-next": "^16.0.7",
     "tailwindcss": "^4",
-    "typescript": "^5",
+    "typescript": "^6",
     "vitest": "^3.0.0"
   },
   "description": "App para llevar el registro de kilometros recorridos y gasto en combustible",
